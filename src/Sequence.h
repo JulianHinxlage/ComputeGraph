@@ -11,13 +11,12 @@
 class Sequence {
 public:
     Sequence();
-    Sequence(const Node &node);
+    void setParent(const Sequence &parent);
     void generate(const Node &node);
     const Matrix &run(const Matrix &input);
-    std::string toString();
-    void eachParameter(const std::function<void(Matrix &)> &callback);
+    void eachParameter(const std::function<void(Matrix &parameter)> &callback);
+    void eachGradient(const std::function<void(Matrix &parameter, Matrix &gradient)> &callback);
 
-private:
     class Step{
     public:
         std::string operation;
@@ -28,9 +27,10 @@ private:
     };
 
     std::vector<std::shared_ptr<Step>> steps;
+    std::vector<std::shared_ptr<Step>> parentSteps;
 
+private:
     std::shared_ptr<Step> generateStep(const Node &node);
-    int nodeIndex(const std::shared_ptr<Step> &step);
 };
 
 

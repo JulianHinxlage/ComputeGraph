@@ -84,4 +84,17 @@ void Operations::init() {
         result = lhs.binaryExpr(rhs, [](double a, double b) -> double{return a <= b;});
     };
 
+    OP("+="){
+        result += lhs;
+    };
+    OP("-="){
+        result -= lhs;
+    };
+    OP("max"){
+        result = lhs.cwiseMax(rhs);
+    };
+    OP("min"){
+        result = lhs.cwiseMin(rhs);
+    };
+
 }

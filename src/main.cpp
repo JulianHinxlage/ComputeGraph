@@ -5,6 +5,9 @@
 #include "Node.h"
 #include "Sequence.h"
 #include "Operations.h"
+#include "Differentiator.h"
+#include "Derivatives.h"
+#include "toString.h"
 #include <iostream>
 
 Node relu(Node x){
@@ -28,19 +31,46 @@ Node network(std::vector<int> layers){
 
 int main(int argc, char *argv[]){
     Operations::init();
+    Derivatives::init();
 
-    Node net = network({1, 3, 3, 3, 1});
+    Node net = network({1, 10, 10, 10, 1});
 
-    Sequence s(net);
-    std::cout << s.toString() << std::endl;
-    s.eachParameter([](Matrix &parameter){
+    Sequence forward;
+    forward.generate(net);
+    std::cout << toString(forward) << std::endl;
+    forward.eachParameter([](Matrix &parameter){
         parameter.setRandom();
     });
+
+    Differentiator diff;
+    std::vector<Node> gradients;
+    Sequence backward;
+    backward.setParent(forward);
+    backward.generate(diff.differentiate(net, gradients));
+    for(auto &n : gradients){
+        backward.generate(n);
+    }
+    std::cout << toString(backward) << std::endl;
 
     Matrix in;
     in.setConstant(1, 1, 1.0f);
 
-    Matrix out = s.run(in);
-    std::cout << out << std::endl;
+    Matrix target;
+    target.setConstant(1, 1, 0.42f);
+
+    Matrix out;
+    in.setConstant(1, 1, 0.0f);
+
+    for(int i = 0; i < 100; i++){
+        out = forward.run(in);
+        if(i % 50 == 0){
+            std::cout << out << std::endl;
+        }
+        backward.run(out - target);
+        backward.eachGradient([](Matrix &parameter, Matrix &gradient){
+           parameter -= gradient * 0.01;
+           gradient *= 0.0f;
+        });
+    }
     return 0;
 }

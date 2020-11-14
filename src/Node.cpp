@@ -67,7 +67,7 @@ Node Node::operator()(const std::string &operation) const {
 Node Node::operator()(const std::string &operation, const Node &rhs) const {
     Node node;
     node.impl->type = OPERATION;
-    if(rhs.impl->isScalar){
+    if(rhs.impl->isScalar && operation[0] != 's'){
         node.impl->operation = std::string("s") + operation;
     }else{
         node.impl->operation = operation;
@@ -199,11 +199,11 @@ Node Node::copy() {
 }
 
 Node max(const Node &lhs, const Node &rhs){
-    return ((lhs >= rhs) % lhs) + ((rhs >= lhs) % rhs);
+    return lhs("max", rhs);
 }
 
 Node min(const Node &lhs, const Node &rhs){
-    return ((lhs <= rhs) % lhs) + ((rhs <= lhs) % rhs);
+    return lhs("min", rhs);
 }
 
 Node ternary(const Node &condition, const Node &lhs, const Node &rhs) {
