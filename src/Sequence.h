@@ -16,6 +16,7 @@ public:
     const Matrix &run(const Matrix &input);
     void eachParameter(const std::function<void(Matrix &parameter)> &callback);
     void eachGradient(const std::function<void(Matrix &parameter, Matrix &gradient)> &callback);
+    void eachBuffer(const std::function<void(Matrix &buffer)> &callback);
 
     class Step{
     public:

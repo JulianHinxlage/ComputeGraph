@@ -24,8 +24,10 @@ Node Differentiator::differentiate(Node &node, std::vector<Node> &gradients) {
     std::vector<Node> inputGradients;
     each(node, [&](Node &node){
         if(node.impl->type == Node::INPUT){
-            Node n =differentiateStep(node);
+            Node n;
             n.impl->type = Node::OUTPUT;
+            n.impl->operands.push_back(differentiateStep(node));
+            n.impl->operation = "=";
             inputGradients.push_back(n);
         }else if(node.impl->type == Node::PARAMETER){
             Node n;
@@ -48,26 +50,40 @@ Node Differentiator::differentiateStep(Node &node) {
         }
     }
 
+    Node gradient;
+
+    if(node.impl->type == Node::BUFFER){
+        gradient = node;
+        gradientResults.emplace_back(node, gradient);
+        for(auto &s : node.impl->operands){
+            getGradientList(s).push_back(gradient);
+        }
+        return gradient;
+    }
+
     for(auto &n : node.impl->usage){
         differentiateStep(n);
     }
 
-    Node gradient;
+    if(node.impl->type == Node::OUTPUT || node.impl->usage.size() == 0){
+        gradient = Node::input();
+        gradientResults.emplace_back(node, gradient);
+        for(auto &s : node.impl->operands){
+            getGradientList(s).push_back(gradient);
+        }
+        return gradient;
+    }
 
     auto &list = getGradientList(node);
-    for(int i = 0; i < list.size(); i++){
+    for (int i = 0; i < list.size(); i++) {
         auto &n = list[i];
-        if(i == 0){
+        if (i == 0) {
             gradient = n;
-        }else{
+        } else {
             gradient = gradient + n;
         }
     }
 
-
-    if(node.impl->usage.size() == 0){
-        gradient = Node::input();
-    }
 
     switch (node.impl->type) {
         case Node::INPUT:
@@ -76,8 +92,9 @@ Node Differentiator::differentiateStep(Node &node) {
             break;
         case Node::PARAMETER:
             break;
-        case Node::OUTPUT:
         case Node::BUFFER:
+            break;
+        case Node::OUTPUT:
         case Node::OPERATION: {
             Node lhs = node.impl->operands.size() > 0 ? node.impl->operands[0] : Node();
             Node rhs = node.impl->operands.size() > 1 ? node.impl->operands[1] : lhs;

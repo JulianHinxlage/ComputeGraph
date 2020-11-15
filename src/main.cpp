@@ -13,8 +13,16 @@ Node relu(Node x){
     return max(x, x * 0.01);
 }
 
+Node sigmoid(Node x){
+    return inv(exp(-x) + 1.0);
+}
+
+Node tanh(Node x){
+    return -(inv(exp(x * 2.0) + 1.0) * 2.0) + 1.0;
+}
+
 Node dense(Node x, int in, int out){
-    return Node::parameter({out, in}) * x + Node::parameter({out});
+    return Node::parameter({out, in}).dot(x) + Node::parameter({out});
 }
 
 Node network(std::vector<int> layers){
@@ -23,6 +31,22 @@ Node network(std::vector<int> layers){
         x = dense(x, layers[i-1], layers[i]);
         if(i != layers.size() - 1){
             x = relu(x);
+        }
+    }
+    return x;
+}
+
+Node recurrent(std::vector<int> layers){
+    Node x = Node::input(layers[0]);
+    for(int i = 1; i < layers.size(); i++){
+        int in = layers[i-1];
+        int out = layers[i];
+        x = dense(x, in, out);
+        if(i != layers.size() - 1){
+            Node buffer = Node::buffer({out});
+            x = x + Node::parameter({out, out}).dot(buffer);
+            x = relu(x);
+            buffer = x * 0.1;
         }
     }
     return x;
@@ -42,7 +66,7 @@ Matrix linearSpace(double a, double b, int count){
 int main(int argc, char *argv[]){
     Operations::init();
     Derivatives::init();
-    Node net = network({1, 10, 10, 10, 1});
+    Node net = recurrent({1, 10, 10, 10, 1});
 
     Matrix input = linearSpace(0, 1, 11);
     Matrix target = input;

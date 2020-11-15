@@ -19,7 +19,7 @@ Node Node::input(const Shape &shape) {
     Node node;
     node.impl->type = INPUT;
     node.impl->shape = shape;
-    node.impl->isScalar = (shape == Shape(1));
+    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -27,7 +27,7 @@ Node Node::parameter(const Shape &shape) {
     Node node;
     node.impl->type = PARAMETER;
     node.impl->shape = shape;
-    node.impl->isScalar = (shape == Shape(1));
+    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -35,7 +35,7 @@ Node Node::buffer(const Shape &shape) {
     Node node;
     node.impl->type = BUFFER;
     node.impl->shape = shape;
-    node.impl->isScalar = (shape == Shape(1));
+    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -97,8 +97,8 @@ Node Node::operator/(const Node &rhs) const {
     return operator()("/", rhs);
 }
 
-Node Node::operator%(const Node &rhs) const {
-    return operator()("%", rhs);
+Node Node::dot(const Node &rhs) const {
+    return operator()("dot", rhs);
 }
 
 Node Node::operator+(double rhs) const {
@@ -131,6 +131,14 @@ Node Node::operator>=(const Node &rhs) const {
 
 Node Node::operator<=(const Node &rhs) const {
     return operator()("<=", rhs);
+}
+
+Node Node::operator-() const {
+    return *this * -1.0;
+}
+
+Node Node::operator+() const {
+    return *this;
 }
 
 Node Node::t() {
@@ -198,6 +206,10 @@ Node Node::copy() {
     return node;
 }
 
+Node dot(const Node &lhs, const Node &rhs){
+    return lhs.dot(rhs);
+}
+
 Node max(const Node &lhs, const Node &rhs){
     return lhs("max", rhs);
 }
@@ -207,5 +219,13 @@ Node min(const Node &lhs, const Node &rhs){
 }
 
 Node ternary(const Node &condition, const Node &lhs, const Node &rhs) {
-    return (condition % lhs) + ((condition * -1.0f + 1.0f) % rhs);
+    return (condition * lhs) + ((condition * -1.0f + 1.0f) * rhs);
+}
+
+Node exp(const Node &lhs){
+    return lhs("exp");
+}
+
+Node inv(const Node &lhs){
+    return lhs("inv");
 }

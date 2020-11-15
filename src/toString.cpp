@@ -55,18 +55,19 @@ std::string toString(Sequence &sequence) {
                 join(ss, s->node.impl->shape.dimensions, ", ");
                 ss <<  "}" << std::endl;
                 break;
-            case Node::BUFFER:
-                ss << "buffer: {";
-                join(ss, s->node.impl->shape.dimensions, ", ");
-                ss <<  "} ";
-
             case Node::GRADIENT:
                 if(s->operands.size() == 2){
                     ss << "gradient(" << nodeIndex(sequence, s->operands[1]) << "): " << nodeIndex(sequence, s->operands[0]) << std::endl;
                 }
                 break;
+            case Node::BUFFER:
+                ss << "buffer: {";
+                join(ss, s->node.impl->shape.dimensions, ", ");
+                ss <<  "} ";
             case Node::OUTPUT:
-                ss << "output: ";
+                if(s->node.impl->type == Node::OUTPUT){
+                    ss << "output: ";
+                }
             case Node::OPERATION:{
                 if(s->operands.size() == 2){
                     ss << nodeIndex(sequence, s->operands[0]) << " " << s->operation << " " << nodeIndex(sequence, s->operands[1]) << std::endl;

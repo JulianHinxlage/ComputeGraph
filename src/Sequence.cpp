@@ -19,12 +19,12 @@ void Sequence::generate(const Node &node) {
 
 std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
     for(auto &s : steps){
-        if(s->node == node){
+        if(s->node.equal(node)){
             return s;
         }
     }
     for(auto &s : parentSteps){
-        if(s->node == node){
+        if(s->node.equal(node)){
             return s;
         }
     }
@@ -50,7 +50,6 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
             break;
         case Node::BUFFER: {
             step->value = node.impl->shape.zeros();
-            int bufferStepIndex = steps.size();
             steps.push_back(step);
 
             step->operation = node.impl->operation;
@@ -59,7 +58,12 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
                 step->operands.push_back(generateStep(n));
             }
 
-            steps.erase(steps.begin() + bufferStepIndex);
+            for(int i = 0; i < steps.size(); i++){
+                if(steps[i] == step){
+                    steps.erase(steps.begin() + i);
+                    break;
+                }
+            }
             break;
         }
         case Node::GRADIENT:
@@ -74,13 +78,22 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
             break;
         }
     }
+
+    for(auto &s : steps){
+        if(s->node.equal(node)){
+            return s;
+        }
+    }
+
     steps.push_back(step);
     return step;
 }
 
 const Matrix &Sequence::run(const Matrix &input) {
     std::shared_ptr<Step> output;
+    int index = -1;
     for(auto &s : steps){
+        index++;
         switch (s->node.impl->type) {
             case Node::INPUT:
                 s->value = input;
@@ -122,6 +135,14 @@ void Sequence::eachGradient(const std::function<void(Matrix &, Matrix &)> &callb
     for(auto &s : steps){
         if(s->node.impl->type == Node::GRADIENT){
             callback(s->operands[1]->value, s->value);
+        }
+    }
+}
+
+void Sequence::eachBuffer(const std::function<void(Matrix &buffer)> &callback){
+    for(auto &s : steps){
+        if(s->node.impl->type == Node::BUFFER){
+            callback(s->value);
         }
     }
 }

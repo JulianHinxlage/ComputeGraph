@@ -40,12 +40,12 @@ void Derivatives::init() {
         rhsResult = gradient * -1;
     };
     OP("s*"){
-        lhsResult = gradient("s*", rhs);
-        rhsResult = lhs("s*", gradient);
+        lhsResult = gradient * rhs;
+        rhsResult = lhs * gradient;
     };
     OP("s/"){
         lhsResult = gradient / rhs;
-        rhsResult = lhs / gradient;
+        rhsResult = -inv(rhs * rhs) * lhs * gradient;
     };
 
     OP("+"){
@@ -57,45 +57,51 @@ void Derivatives::init() {
         rhsResult = gradient * -1;
     };
     OP("*"){
-        lhsResult = gradient * rhs.t();
-        rhsResult = lhs.t() * gradient;
+        lhsResult = gradient * rhs;
+        rhsResult = lhs * gradient;
     };
     OP("/"){
         lhsResult = gradient / rhs;
-        rhsResult = lhs / gradient;
+        rhsResult = -inv(rhs * rhs) * lhs * gradient;
     };
-    OP("%"){
-        lhsResult = gradient % rhs;
-        rhsResult = lhs % gradient;
+    OP("dot"){
+        lhsResult = gradient.dot(rhs.t());
+        rhsResult = lhs.t().dot(gradient);
     };
 
     OP("t"){
         lhsResult = gradient.t();
     };
     OP(">"){
-        lhsResult = gradient % (lhs > rhs);
-        rhsResult = gradient % (lhs <= rhs);
+        lhsResult = gradient * (lhs > rhs);
+        rhsResult = gradient * (lhs <= rhs);
     };
     OP("<"){
-        lhsResult = gradient % (lhs < rhs);
-        rhsResult = gradient % (lhs >= rhs);
+        lhsResult = gradient * (lhs < rhs);
+        rhsResult = gradient * (lhs >= rhs);
     };
     OP(">="){
-        lhsResult = gradient % (lhs >= rhs);
-        rhsResult = gradient % (lhs < rhs);
+        lhsResult = gradient * (lhs >= rhs);
+        rhsResult = gradient * (lhs < rhs);
     };
     OP("<="){
-        lhsResult = gradient % (lhs <= rhs);
-        rhsResult = gradient % (lhs > rhs);
+        lhsResult = gradient * (lhs <= rhs);
+        rhsResult = gradient * (lhs > rhs);
     };
 
     OP("max"){
-        lhsResult = gradient % (lhs > rhs);
-        rhsResult = gradient % (lhs <= rhs);
+        lhsResult = gradient * (lhs > rhs);
+        rhsResult = gradient * (lhs <= rhs);
     };
     OP("min"){
-        lhsResult = gradient % (lhs < rhs);
-        rhsResult = gradient % (lhs >= rhs);
+        lhsResult = gradient * (lhs < rhs);
+        rhsResult = gradient * (lhs >= rhs);
+    };
+    OP("exp"){
+        lhsResult = exp(lhs) * gradient;
+    };
+    OP("inv"){
+        lhsResult = -inv(lhs * lhs) * gradient;
     };
 
 }

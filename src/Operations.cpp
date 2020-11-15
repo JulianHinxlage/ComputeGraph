@@ -49,7 +49,7 @@ void Operations::init() {
     };
     OP("s/"){
         result = lhs.unaryExpr([&](double a) {
-            return a * rhs(0);
+            return a / rhs(0);
         });
     };
 
@@ -59,13 +59,13 @@ void Operations::init() {
     OP("-"){
         result = lhs - rhs;
     };
-    OP("*"){
+    OP("dot"){
         result = lhs * rhs;
     };
     OP("/"){
         result = lhs.cwiseProduct(rhs.cwiseInverse());
     };
-    OP("%"){
+    OP("*"){
         result = lhs.cwiseProduct(rhs);
     };
     OP("t"){
@@ -95,6 +95,14 @@ void Operations::init() {
     };
     OP("min"){
         result = lhs.cwiseMin(rhs);
+    };
+    OP("exp"){
+        result = lhs.unaryExpr([](double a){
+            return std::exp(a);
+        });
+    };
+    OP("inv"){
+        result = lhs.cwiseInverse();
     };
 
 }

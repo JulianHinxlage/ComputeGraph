@@ -27,7 +27,7 @@ public:
     Node operator-(const Node &rhs) const;
     Node operator*(const Node &rhs) const;
     Node operator/(const Node &rhs) const;
-    Node operator%(const Node &rhs) const;
+    Node dot(const Node &rhs) const;
 
     Node operator+(double rhs) const;
     Node operator-(double rhs) const;
@@ -39,6 +39,8 @@ public:
     Node operator>=(const Node &rhs) const;
     Node operator<=(const Node &rhs) const;
 
+    Node operator-() const;
+    Node operator+() const;
     Node t();
 
     Node &operator=(const Node &rhs);
@@ -72,8 +74,11 @@ public:
     std::shared_ptr<Impl> impl;
 };
 
+Node dot(const Node &lhs, const Node &rhs);
 Node max(const Node &lhs, const Node &rhs);
 Node min(const Node &lhs, const Node &rhs);
 Node ternary(const Node &condition, const Node &lhs, const Node &rhs);
+Node exp(const Node &lhs);
+Node inv(const Node &lhs);
 
 #endif //COMPUTEGRAPH_NODE_H
