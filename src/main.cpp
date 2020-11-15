@@ -3,11 +3,10 @@
 //
 
 #include "Node.h"
-#include "Sequence.h"
 #include "Operations.h"
-#include "Differentiator.h"
 #include "Derivatives.h"
 #include "toString.h"
+#include "Model.h"
 #include <iostream>
 
 Node relu(Node x){
@@ -29,48 +28,49 @@ Node network(std::vector<int> layers){
     return x;
 }
 
+Matrix linearSpace(double a, double b, int count){
+    Matrix m;
+    m.setZero(1, count);
+    for(int i = 0; i < count; i++){
+        double val = (double)(i) / (double)(count - 1);
+        val = a + val * (b - a);
+        m(0, i) = val;
+    }
+    return m;
+}
+
 int main(int argc, char *argv[]){
     Operations::init();
     Derivatives::init();
-
     Node net = network({1, 10, 10, 10, 1});
 
-    Sequence forward;
-    forward.generate(net);
-    std::cout << toString(forward) << std::endl;
-    forward.eachParameter([](Matrix &parameter){
-        parameter.setRandom();
+    Matrix input = linearSpace(0, 1, 11);
+    Matrix target = input;
+    target = target.unaryExpr([&](double a){
+        return a * a - a * 0.5 + 0.2;
     });
 
-    Differentiator diff;
-    std::vector<Node> gradients;
-    Sequence backward;
-    backward.setParent(forward);
-    backward.generate(diff.differentiate(net, gradients));
-    for(auto &n : gradients){
-        backward.generate(n);
-    }
-    std::cout << toString(backward) << std::endl;
+    Model model(net);
+    model.optimizer.batchSize = input.cols();
+    model.optimizer.learningRate = 0.001;
 
-    Matrix in;
-    in.setConstant(1, 1, 1.0f);
+    std::cout << toString(model.forward) << std::endl;
+    std::cout << toString(model.backward) << std::endl;
 
-    Matrix target;
-    target.setConstant(1, 1, 0.42f);
-
-    Matrix out;
-    in.setConstant(1, 1, 0.0f);
-
-    for(int i = 0; i < 100; i++){
-        out = forward.run(in);
-        if(i % 50 == 0){
-            std::cout << out << std::endl;
+    for(int i = 0; i < 10000; i++) {
+        double loss = model.columnSamples(input, target);
+        if(i % 500 == 0){
+            std::cout << "loss: " << loss << std::endl;
         }
-        backward.run(out - target);
-        backward.eachGradient([](Matrix &parameter, Matrix &gradient){
-           parameter -= gradient * 0.01;
-           gradient *= 0.0f;
-        });
     }
+
+    std::cout << std::endl;
+    for(int c = 0; c < input.cols(); c++){
+        Matrix in = input.col(c).matrix();
+        Matrix out = model.forward.run(in);
+        Matrix tar = target.col(c).matrix();
+        std::cout << in << ", " << out << ", " << tar << std::endl;
+    }
+
     return 0;
 }
