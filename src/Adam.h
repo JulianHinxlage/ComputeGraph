@@ -9,15 +9,15 @@
 
 class Adam {
 public:
-    typedef const std::function<void(const std::function<void(Matrix &, Matrix &)> &)> &Each;
+    typedef const std::function<void(const std::function<void(Tensor &, Tensor &)> &)> &Each;
 
     double learningRate;
     int batchSize;
     int sampleCounter;
     double beta1;
     double beta2;
-    std::vector<Matrix> gradientMomentum1;
-    std::vector<Matrix> gradientMomentum2;
+    std::vector<Tensor> gradientMomentum1;
+    std::vector<Tensor> gradientMomentum2;
     double beta1t;
     double beta2t;
     double parameterDecayRate;

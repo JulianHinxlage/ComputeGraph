@@ -19,7 +19,6 @@ Node Node::input(const Shape &shape) {
     Node node;
     node.impl->type = INPUT;
     node.impl->shape = shape;
-    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -27,7 +26,6 @@ Node Node::parameter(const Shape &shape) {
     Node node;
     node.impl->type = PARAMETER;
     node.impl->shape = shape;
-    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -35,7 +33,6 @@ Node Node::buffer(const Shape &shape) {
     Node node;
     node.impl->type = BUFFER;
     node.impl->shape = shape;
-    //node.impl->isScalar = (shape == Shape(1));
     return node;
 }
 
@@ -67,11 +64,7 @@ Node Node::operator()(const std::string &operation) const {
 Node Node::operator()(const std::string &operation, const Node &rhs) const {
     Node node;
     node.impl->type = OPERATION;
-    if(rhs.impl->isScalar && operation[0] != 's'){
-        node.impl->operation = std::string("s") + operation;
-    }else{
-        node.impl->operation = operation;
-    }
+    node.impl->operation = operation;
     node.impl->operands.push_back(*this);
     node.impl->operands.push_back(rhs);
     return node;

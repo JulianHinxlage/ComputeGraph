@@ -31,23 +31,6 @@ void Derivatives::init() {
         lhsResult = gradient;
     };
 
-    OP("s+"){
-        lhsResult = gradient;
-        rhsResult = gradient;
-    };
-    OP("s-"){
-        lhsResult = gradient;
-        rhsResult = gradient * -1;
-    };
-    OP("s*"){
-        lhsResult = gradient * rhs;
-        rhsResult = lhs * gradient;
-    };
-    OP("s/"){
-        lhsResult = gradient / rhs;
-        rhsResult = -inv(rhs * rhs) * lhs * gradient;
-    };
-
     OP("+"){
         lhsResult = gradient;
         rhsResult = gradient;

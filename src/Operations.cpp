@@ -22,35 +22,20 @@ const Operations::Operation &Operations::get(const std::string &name) {
 }
 
 void Operations::init() {
-    identityOperation = [](Matrix &result, Matrix &lhs, Matrix &rhs){
+    identityOperation = [](Tensor &result, Tensor &lhs, Tensor &rhs){
         result = lhs;
     };
 
-    #define OP(name) operations[name] = [](Matrix &result, Matrix &lhs, Matrix &rhs)
+    #define OP(name) operations[name] = [](Tensor &result, Tensor &lhs, Tensor &rhs)
 
     OP("="){
         result = lhs;
     };
-
-    OP("s+"){
-        result = lhs.unaryExpr([&](double a) {
-            return a + rhs(0);
-        });
+    OP("+="){
+        result += lhs;
     };
-    OP("s-"){
-        result = lhs.unaryExpr([&](double a) {
-            return a - rhs(0);
-        });
-    };
-    OP("s*"){
-        result = lhs.unaryExpr([&](double a) {
-            return a * rhs(0);
-        });
-    };
-    OP("s/"){
-        result = lhs.unaryExpr([&](double a) {
-            return a / rhs(0);
-        });
+    OP("-="){
+        result -= lhs;
     };
 
     OP("+"){
@@ -59,50 +44,44 @@ void Operations::init() {
     OP("-"){
         result = lhs - rhs;
     };
-    OP("dot"){
-        result = lhs * rhs;
-    };
     OP("/"){
-        result = lhs.cwiseProduct(rhs.cwiseInverse());
+        result = lhs / rhs;
     };
     OP("*"){
-        result = lhs.cwiseProduct(rhs);
-    };
-    OP("t"){
-        result = lhs.transpose();
-    };
-    OP(">"){
-        result = lhs.binaryExpr(rhs, [](double a, double b) -> double{return a > b;});
-    };
-    OP("<"){
-        result = lhs.binaryExpr(rhs, [](double a, double b) -> double{return a < b;});
-    };
-    OP(">="){
-        result = lhs.binaryExpr(rhs, [](double a, double b) -> double{return a >= b;});
-    };
-    OP("<="){
-        result = lhs.binaryExpr(rhs, [](double a, double b) -> double{return a <= b;});
+        result = lhs * rhs;
     };
 
-    OP("+="){
-        result += lhs;
+    OP("dot"){
+        result = xt::linalg::dot(lhs, rhs);
     };
-    OP("-="){
-        result -= lhs;
+    OP("t"){
+        result = xt::transpose(lhs);
+    };
+
+    OP(">"){
+        result = lhs > rhs;
+    };
+    OP("<"){
+        result = lhs < rhs;
+    };
+    OP(">="){
+        result = lhs >= rhs;
+    };
+    OP("<="){
+        result = lhs <= rhs;
     };
     OP("max"){
-        result = lhs.cwiseMax(rhs);
+        result = xt::maximum(lhs, rhs);
     };
     OP("min"){
-        result = lhs.cwiseMin(rhs);
+        result = xt::minimum(lhs, rhs);
     };
+
     OP("exp"){
-        result = lhs.unaryExpr([](double a){
-            return std::exp(a);
-        });
+        result = xt::exp(lhs);
     };
     OP("inv"){
-        result = lhs.cwiseInverse();
+        result = 1.0 / lhs;
     };
 
 }

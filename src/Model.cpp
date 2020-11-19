@@ -22,35 +22,35 @@ void Model::compile(Node &node) {
         backward.generate(gradient);
     }
 
-    forward.eachParameter([&](Matrix &parameter){
-       parameter.setRandom();
+    forward.eachParameter([&](Tensor &parameter){
+        parameter = xt::random::rand<double>(parameter.shape(), -1, 1);
     });
 }
 
-double Model::sample(const Matrix &input, const Matrix &target) {
-    Matrix output = forward.run(input);
-    Matrix gradient = lossGradient(output, target);
+double Model::sample(const Tensor &input, const Tensor &target) {
+    Tensor output = forward.run(input);
+    Tensor gradient = lossGradient(output, target);
     double lossValue = loss(output, target);
     backward.run(gradient);
     optimizer.update([&](auto &c){backward.eachGradient(c);});
     return lossValue;
 }
 
-double Model::columnSamples(const Matrix &input, const Matrix &target, int epochs){
+double Model::columnSamples(const Tensor &input, const Tensor &target, int epochs){
     double lossValue = 0;
     for(int epoch = 0; epoch < epochs; epoch++){
         lossValue = 0;
-        for(int i = 0; i < input.cols(); i++){
-            lossValue += sample(input.col(i), target.col(i));
+        for(int i = 0; i < input.shape(0); i++){
+            lossValue += sample(xt::view(input, i), xt::view(target, i));
         }
     }
     return lossValue;
 }
 
-double Model::loss(const Matrix &output, const Matrix &target) {
-    return (output - target).cwiseProduct(output - target).sum() / output.cols() / output.rows();
+double Model::loss(const Tensor &output, const Tensor &target) {
+    return xt::sum((output - target) * (output - target))() / output.size();
 }
 
-Matrix Model::lossGradient(const Matrix &output, const Matrix &target) {
-    return (output - target) / output.cols() / output.rows();
+Tensor Model::lossGradient(const Tensor &output, const Tensor &target) {
+    return (output - target) / output.size();
 }

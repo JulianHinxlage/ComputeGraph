@@ -31,6 +31,7 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
 
     std::shared_ptr<Step> step = std::make_shared<Step>();
     step->node = node;
+    step->type = node.impl->type;
 
     switch (node.impl->type) {
         case Node::INPUT:
@@ -38,7 +39,7 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
         case Node::CONSTANT:
             step->value = node.impl->shape.zeros();
             if(node.impl->values.size() == 1){
-                step->value.setConstant(node.impl->values[0]);
+                step->value = node.impl->values[0];
             }else{
                 for(int i = 0; i < node.impl->values.size(); i++){
                     step->value(i) = node.impl->values[i];
@@ -89,12 +90,12 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
     return step;
 }
 
-const Matrix &Sequence::run(const Matrix &input) {
+const Tensor &Sequence::run(const Tensor &input) {
     std::shared_ptr<Step> output;
     int index = -1;
     for(auto &s : steps){
         index++;
-        switch (s->node.impl->type) {
+        switch (s->type) {
             case Node::INPUT:
                 s->value = input;
                 break;
@@ -115,6 +116,7 @@ const Matrix &Sequence::run(const Matrix &input) {
                 break;
             }
         }
+        //std::cout << s->value << std::endl << std::endl;
     }
     if(output){
         return output->value;
@@ -123,25 +125,25 @@ const Matrix &Sequence::run(const Matrix &input) {
     }
 }
 
-void Sequence::eachParameter(const std::function<void(Matrix &)> &callback) {
+void Sequence::eachParameter(const std::function<void(Tensor &)> &callback) {
     for(auto &s : steps){
-        if(s->node.impl->type == Node::PARAMETER){
+        if(s->type == Node::PARAMETER){
             callback(s->value);
         }
     }
 }
 
-void Sequence::eachGradient(const std::function<void(Matrix &, Matrix &)> &callback) {
+void Sequence::eachGradient(const std::function<void(Tensor &, Tensor &)> &callback) {
     for(auto &s : steps){
-        if(s->node.impl->type == Node::GRADIENT){
+        if(s->type == Node::GRADIENT){
             callback(s->operands[1]->value, s->value);
         }
     }
 }
 
-void Sequence::eachBuffer(const std::function<void(Matrix &buffer)> &callback){
+void Sequence::eachBuffer(const std::function<void(Tensor &buffer)> &callback){
     for(auto &s : steps){
-        if(s->node.impl->type == Node::BUFFER){
+        if(s->type == Node::BUFFER){
             callback(s->value);
         }
     }

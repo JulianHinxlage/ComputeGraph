@@ -13,18 +13,19 @@ public:
     Sequence();
     void setParent(const Sequence &parent);
     void generate(const Node &node);
-    const Matrix &run(const Matrix &input);
-    void eachParameter(const std::function<void(Matrix &parameter)> &callback);
-    void eachGradient(const std::function<void(Matrix &parameter, Matrix &gradient)> &callback);
-    void eachBuffer(const std::function<void(Matrix &buffer)> &callback);
+    const Tensor &run(const Tensor &input);
+    void eachParameter(const std::function<void(Tensor &parameter)> &callback);
+    void eachGradient(const std::function<void(Tensor &parameter, Tensor &gradient)> &callback);
+    void eachBuffer(const std::function<void(Tensor &buffer)> &callback);
 
     class Step{
     public:
         std::string operation;
         std::vector<std::shared_ptr<Step>> operands;
         Node node;
+        Node::Type type;
         Operations::Operation callback;
-        Matrix value;
+        Tensor value;
     };
 
     std::vector<std::shared_ptr<Step>> steps;

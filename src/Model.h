@@ -17,10 +17,10 @@ public:
     Model();
     Model(Node &node);
     void compile(Node &node);
-    double sample(const Matrix &input, const Matrix &target);
-    double columnSamples(const Matrix &input, const Matrix &target, int epochs = 1);
-    double loss(const Matrix &output, const Matrix &target);
-    Matrix lossGradient(const Matrix &output, const Matrix &target);
+    double sample(const Tensor &input, const Tensor &target);
+    double columnSamples(const Tensor &input, const Tensor &target, int epochs = 1);
+    double loss(const Tensor &output, const Tensor &target);
+    Tensor lossGradient(const Tensor &output, const Tensor &target);
 };
 
 

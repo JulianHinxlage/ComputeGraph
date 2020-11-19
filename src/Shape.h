@@ -6,7 +6,7 @@
 #define COMPUTEGRAPH_SHAPE_H
 
 #include <vector>
-#include "Operations.h"
+#include "Tensor.h"
 
 class Shape {
 public:
@@ -20,9 +20,14 @@ public:
         dimensions = {t...};
     }
 
+    int get(int index) const;
+
     bool operator==(const Shape &shape) const;
 
-    Matrix zeros();
+    int elements() const;
+    int rank() const;
+
+    Tensor zeros() const;
 };
 
 

@@ -18,16 +18,26 @@ bool Shape::operator==(const Shape &shape) const {
     return dimensions == shape.dimensions;
 }
 
-Matrix Shape::zeros() {
-    Matrix m;
-    int r = 1;
-    int c = 1;
-    if(dimensions.size() >= 1){
-        r = dimensions[0];
+int Shape::get(int index) const {
+    if(index < 0 || index >= rank()){
+        return 1;
+    }else{
+        return dimensions[index];
     }
-    if(dimensions.size() >= 2){
-        c = dimensions[1];
+}
+
+int Shape::elements() const {
+    int count = 1;
+    for(auto &i : dimensions){
+        count *= i;
     }
-    m.setZero(r, c);
-    return m;
+    return count;
+}
+
+int Shape::rank() const{
+    return dimensions.size();
+}
+
+Tensor Shape::zeros() const {
+    return xt::zeros<double>(dimensions);
 }

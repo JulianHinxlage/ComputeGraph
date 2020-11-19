@@ -7,6 +7,8 @@
 #include "Derivatives.h"
 #include "toString.h"
 #include "Model.h"
+#include "Clock.h"
+#include "Tensor.h"
 #include <iostream>
 
 Node relu(Node x){
@@ -21,8 +23,14 @@ Node tanh(Node x){
     return -(inv(exp(x * 2.0) + 1.0) * 2.0) + 1.0;
 }
 
+
 Node dense(Node x, int in, int out){
-    return Node::parameter({out, in}).dot(x) + Node::parameter({out});
+    return Node::parameter({out, in}).dot(x) + Node::parameter({out, 1});
+}
+
+Node convolution(Node x, int kernelX, int kernelY){
+    Node kernel = Node::parameter({kernelY, kernelX});
+    return x("convolution", kernel);
 }
 
 Node network(std::vector<int> layers){
@@ -52,35 +60,30 @@ Node recurrent(std::vector<int> layers){
     return x;
 }
 
-Matrix linearSpace(double a, double b, int count){
-    Matrix m;
-    m.setZero(1, count);
-    for(int i = 0; i < count; i++){
-        double val = (double)(i) / (double)(count - 1);
-        val = a + val * (b - a);
-        m(0, i) = val;
-    }
-    return m;
-}
 
 int main(int argc, char *argv[]){
     Operations::init();
     Derivatives::init();
-    Node net = recurrent({1, 10, 10, 10, 1});
 
-    Matrix input = linearSpace(0, 1, 11);
-    Matrix target = input;
-    target = target.unaryExpr([&](double a){
+
+    xt::random::seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+
+    Tensor input = xt::linspace<double>(0, 1, 11);
+    Tensor target = input;
+    target = xt::vectorize([&](double a){
         return a * a - a * 0.5 + 0.2;
-    });
+    })(input);
 
+
+    Node net = network({1, 10, 10, 1});
     Model model(net);
-    model.optimizer.batchSize = input.cols();
+    model.optimizer.batchSize = input.shape(0);
     model.optimizer.learningRate = 0.001;
 
     std::cout << toString(model.forward) << std::endl;
     std::cout << toString(model.backward) << std::endl;
 
+    Clock clock;
     for(int i = 0; i < 10000; i++) {
         double loss = model.columnSamples(input, target);
         if(i % 500 == 0){
@@ -88,13 +91,17 @@ int main(int argc, char *argv[]){
         }
     }
 
+    double duration = clock.elapsed();
+
     std::cout << std::endl;
-    for(int c = 0; c < input.cols(); c++){
-        Matrix in = input.col(c).matrix();
-        Matrix out = model.forward.run(in);
-        Matrix tar = target.col(c).matrix();
-        std::cout << in << ", " << out << ", " << tar << std::endl;
+    for(int c = 0; c < input.shape(0); c++){
+        Tensor in =  xt::view(input, c);
+        Tensor out = model.forward.run(in);
+        Tensor tar = xt::view(target, c);
+        std::cout << in << ", " << out(0) << ", " << tar << std::endl;
     }
 
+    std::cout << std::endl;
+    std::cout << "time: " << duration << " s" << std::endl;
     return 0;
 }
