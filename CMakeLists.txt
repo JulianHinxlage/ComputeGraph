@@ -4,12 +4,12 @@ set(CMAKE_CXX_STANDARD 17)
 project(ComputeGraph)
 
 file(GLOB_RECURSE SOURCE src/*.cpp)
-file(GLOB_RECURSE XSOURCE extern/xtensor-blas/include/*.cxx)
-add_executable(${PROJECT_NAME} ${SOURCE} ${XSOURCE})
+add_executable(${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC src)
 
 find_package(BLAS REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC blas)
+find_package(LAPACK REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC blas lapack)
 
 add_subdirectory(extern/xsimd)
 add_subdirectory(extern/xtl)
