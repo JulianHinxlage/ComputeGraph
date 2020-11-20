@@ -5,7 +5,6 @@
 #ifndef COMPUTEGRAPH_TENSOR_H
 #define COMPUTEGRAPH_TENSOR_H
 
-#define XTENSOR_USE_XSIMD
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xrandom.hpp>

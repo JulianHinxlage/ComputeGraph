@@ -92,9 +92,7 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
 
 const Tensor &Sequence::run(const Tensor &input) {
     std::shared_ptr<Step> output;
-    int index = -1;
     for(auto &s : steps){
-        index++;
         switch (s->type) {
             case Node::INPUT:
                 s->value = input;
@@ -116,7 +114,6 @@ const Tensor &Sequence::run(const Tensor &input) {
                 break;
             }
         }
-        //std::cout << s->value << std::endl << std::endl;
     }
     if(output){
         return output->value;

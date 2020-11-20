@@ -23,14 +23,8 @@ Node tanh(Node x){
     return -(inv(exp(x * 2.0) + 1.0) * 2.0) + 1.0;
 }
 
-
 Node dense(Node x, int in, int out){
-    return Node::parameter({out, in}).dot(x) + Node::parameter({out, 1});
-}
-
-Node convolution(Node x, int kernelX, int kernelY){
-    Node kernel = Node::parameter({kernelY, kernelX});
-    return x("convolution", kernel);
+    return Node::parameter({out, in}).dot(x) + Node::parameter({out,1});
 }
 
 Node network(std::vector<int> layers){
@@ -51,7 +45,7 @@ Node recurrent(std::vector<int> layers){
         int out = layers[i];
         x = dense(x, in, out);
         if(i != layers.size() - 1){
-            Node buffer = Node::buffer({out});
+            Node buffer = Node::buffer({out, 1});
             x = x + Node::parameter({out, out}).dot(buffer);
             x = relu(x);
             buffer = x * 0.1;
@@ -60,32 +54,35 @@ Node recurrent(std::vector<int> layers){
     return x;
 }
 
-
 int main(int argc, char *argv[]){
+    //init
     Operations::init();
     Derivatives::init();
-
-
     xt::random::seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
-    Tensor input = xt::linspace<double>(0, 1, 11);
+    //data set
+    Tensor input = xt::linspace<double>(0.1, 1, 10);
     Tensor target = input;
-    target = xt::vectorize([&](double a){
-        return a * a - a * 0.5 + 0.2;
+    target = xt::vectorize([&](double x){
+        return x * x - x * 0.5 + 0.2;
     })(input);
+    input = xt::view(input, xt::newaxis(), xt::all());
+    target = xt::view(target, xt::newaxis(), xt::all());
+    int samples = input.shape(1);
 
 
-    Node net = network({1, 10, 10, 1});
+    //model
+    Node net = network({1, 10, 10, 10, 1});
     Model model(net);
-    model.optimizer.batchSize = input.shape(0);
-    model.optimizer.learningRate = 0.001;
-
+    model.optimizer = std::make_shared<Adam>(0.001);
+    model.optimizer->batchSize = input.shape(1);
     std::cout << toString(model.forward) << std::endl;
     std::cout << toString(model.backward) << std::endl;
 
+    //training
     Clock clock;
     for(int i = 0; i < 10000; i++) {
-        double loss = model.columnSamples(input, target);
+        double loss = model.samples(input, target, samples);
         if(i % 500 == 0){
             std::cout << "loss: " << loss << std::endl;
         }
@@ -93,12 +90,13 @@ int main(int argc, char *argv[]){
 
     double duration = clock.elapsed();
 
+    //print output values
     std::cout << std::endl;
-    for(int c = 0; c < input.shape(0); c++){
-        Tensor in =  xt::view(input, c);
+    for(int c = 0; c < samples; c++){
+        Tensor in =  xt::view(input, xt::all(), c, xt::newaxis());
         Tensor out = model.forward.run(in);
-        Tensor tar = xt::view(target, c);
-        std::cout << in << ", " << out(0) << ", " << tar << std::endl;
+        Tensor tar = xt::view(target, xt::all(), c, xt::newaxis());
+        std::cout << in(0, 0) << ", " << out(0, 0) << ", " << tar(0, 0) << std::endl;
     }
 
     std::cout << std::endl;

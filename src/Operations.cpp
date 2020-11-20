@@ -32,10 +32,20 @@ void Operations::init() {
         result = lhs;
     };
     OP("+="){
-        result += lhs;
+        //todo: tensor rank agnostic
+        for(int r = 0; r < lhs.shape(0); r++){
+            for(int c = 0; c < lhs.shape(0); c++){
+                result(r % result.shape(0), c % result.shape(1)) += lhs(r % lhs.shape(0), c % lhs.shape(1));
+            }
+        }
     };
     OP("-="){
-        result -= lhs;
+        //todo: tensor rank agnostic
+        for(int r = 0; r < lhs.shape(0); r++){
+            for(int c = 0; c < lhs.shape(0); c++){
+                result(r % result.shape(0), c % result.shape(1)) -= lhs(r % lhs.shape(0), c % lhs.shape(1));
+            }
+        }
     };
 
     OP("+"){

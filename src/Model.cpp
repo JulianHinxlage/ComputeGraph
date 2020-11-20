@@ -27,12 +27,12 @@ void Model::compile(Node &node) {
     });
 }
 
-double Model::sample(const Tensor &input, const Tensor &target) {
+double Model::samples(const Tensor &input, const Tensor &target, int samples) {
     Tensor output = forward.run(input);
-    Tensor gradient = lossGradient(output, target);
     double lossValue = loss(output, target);
+    Tensor gradient = lossGradient(output, target);
     backward.run(gradient);
-    optimizer.update([&](auto &c){backward.eachGradient(c);});
+    optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
     return lossValue;
 }
 
@@ -40,17 +40,17 @@ double Model::columnSamples(const Tensor &input, const Tensor &target, int epoch
     double lossValue = 0;
     for(int epoch = 0; epoch < epochs; epoch++){
         lossValue = 0;
-        for(int i = 0; i < input.shape(0); i++){
-            lossValue += sample(xt::view(input, i), xt::view(target, i));
+        for(int i = 0; i < input.shape(1); i++){
+            lossValue += samples(xt::view(input, xt::all(), i, xt::newaxis()), xt::view(target, xt::all(), i, xt::newaxis()));
         }
     }
     return lossValue;
 }
 
 double Model::loss(const Tensor &output, const Tensor &target) {
-    return xt::sum((output - target) * (output - target))() / output.size();
+    return xt::sum((output - target) * (output - target))();
 }
 
 Tensor Model::lossGradient(const Tensor &output, const Tensor &target) {
-    return (output - target) / output.size();
+    return (output - target);
 }
