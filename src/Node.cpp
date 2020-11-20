@@ -222,3 +222,7 @@ Node exp(const Node &lhs){
 Node inv(const Node &lhs){
     return lhs("inv");
 }
+
+Node sum(const Node &lhs) {
+    return lhs("sum");
+}

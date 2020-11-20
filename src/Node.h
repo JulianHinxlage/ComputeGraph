@@ -80,5 +80,6 @@ Node min(const Node &lhs, const Node &rhs);
 Node ternary(const Node &condition, const Node &lhs, const Node &rhs);
 Node exp(const Node &lhs);
 Node inv(const Node &lhs);
+Node sum(const Node &lhs);
 
 #endif //COMPUTEGRAPH_NODE_H

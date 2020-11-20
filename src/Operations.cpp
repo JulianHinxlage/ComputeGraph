@@ -93,5 +93,8 @@ void Operations::init() {
     OP("inv"){
         result = 1.0 / lhs;
     };
+    OP("sum"){
+        result = xt::sum(lhs);
+    };
 
 }

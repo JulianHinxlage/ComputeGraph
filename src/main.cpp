@@ -23,6 +23,10 @@ Node tanh(Node x){
     return -(inv(exp(x * 2.0) + 1.0) * 2.0) + 1.0;
 }
 
+Node softmax(Node x){
+    return exp(x) / sum(exp(x));
+}
+
 Node dense(Node x, int in, int out){
     return Node::parameter({out, in}).dot(x) + Node::parameter({out,1});
 }
@@ -30,9 +34,13 @@ Node dense(Node x, int in, int out){
 Node network(std::vector<int> layers){
     Node x = Node::input(layers[0]);
     for(int i = 1; i < layers.size(); i++){
+        Node xin = x;
         x = dense(x, layers[i-1], layers[i]);
-        if(i != layers.size() - 1){
-            x = relu(x);
+        if(i != layers.size() - 1) {
+            x = tanh(x);
+            if (layers[i - 1] == layers[i]) {
+                x = x + xin;
+            }
         }
     }
     return x;
@@ -61,7 +69,7 @@ int main(int argc, char *argv[]){
     xt::random::seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
     //data set
-    Tensor input = xt::linspace<double>(0.1, 1, 10);
+    Tensor input = xt::linspace<double>(0.0, 1, 11);
     Tensor target = input;
     target = xt::vectorize([&](double x){
         return x * x - x * 0.5 + 0.2;
@@ -74,10 +82,13 @@ int main(int argc, char *argv[]){
     //model
     Node net = network({1, 10, 10, 10, 1});
     Model model(net);
+    model.loss = std::make_shared<MeanSquaredError>();
     model.optimizer = std::make_shared<Adam>(0.001);
     model.optimizer->batchSize = input.shape(1);
     std::cout << toString(model.forward) << std::endl;
     std::cout << toString(model.backward) << std::endl;
+
+    std::cout << model.totalParameterCount() << " parameters" << std::endl << std::endl;
 
     //training
     Clock clock;
@@ -96,7 +107,7 @@ int main(int argc, char *argv[]){
         Tensor in =  xt::view(input, xt::all(), c, xt::newaxis());
         Tensor out = model.forward.run(in);
         Tensor tar = xt::view(target, xt::all(), c, xt::newaxis());
-        std::cout << in(0, 0) << ", " << out(0, 0) << ", " << tar(0, 0) << std::endl;
+        std::cout << xt::view(in, xt::all(), 0) << ", " << xt::view(out, xt::all(), 0) << ", " << xt::view(tar, xt::all(), 0) << std::endl;
     }
 
     std::cout << std::endl;

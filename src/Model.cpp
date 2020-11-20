@@ -29,8 +29,8 @@ void Model::compile(Node &node) {
 
 double Model::samples(const Tensor &input, const Tensor &target, int samples) {
     Tensor output = forward.run(input);
-    double lossValue = loss(output, target);
-    Tensor gradient = lossGradient(output, target);
+    double lossValue = loss->value(output, target);
+    Tensor gradient = loss->gradient(output, target);
     backward.run(gradient);
     optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
     return lossValue;
@@ -47,10 +47,10 @@ double Model::columnSamples(const Tensor &input, const Tensor &target, int epoch
     return lossValue;
 }
 
-double Model::loss(const Tensor &output, const Tensor &target) {
-    return xt::sum((output - target) * (output - target))();
-}
-
-Tensor Model::lossGradient(const Tensor &output, const Tensor &target) {
-    return (output - target);
+int Model::totalParameterCount() {
+    int count = 0;
+    forward.eachParameter([&](Tensor &p){
+       count += p.size();
+    });
+    return count;
 }

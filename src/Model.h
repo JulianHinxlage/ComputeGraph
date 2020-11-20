@@ -7,10 +7,12 @@
 
 #include "Sequence.h"
 #include "Optimizer.h"
+#include "Loss.h"
 
 class Model {
 public:
     std::shared_ptr<Optimizer> optimizer;
+    std::shared_ptr<Loss> loss;
     Sequence forward;
     Sequence backward;
 
@@ -19,8 +21,7 @@ public:
     void compile(Node &node);
     double samples(const Tensor &input, const Tensor &target, int samples = 1);
     double columnSamples(const Tensor &input, const Tensor &target, int epochs = 1);
-    double loss(const Tensor &output, const Tensor &target);
-    Tensor lossGradient(const Tensor &output, const Tensor &target);
+    int totalParameterCount();
 };
 
 

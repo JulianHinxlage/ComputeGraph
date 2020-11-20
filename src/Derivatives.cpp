@@ -86,5 +86,8 @@ void Derivatives::init() {
     OP("inv"){
         lhsResult = -inv(lhs * lhs) * gradient;
     };
+    OP("sum"){
+        lhsResult = gradient;
+    };
 
 }
