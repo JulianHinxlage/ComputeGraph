@@ -13,7 +13,7 @@ public:
     Sequence();
     void setParent(const Sequence &parent);
     void generate(const Node &node);
-    const Tensor &run(const Tensor &input);
+    const Tensor &run(const Tensor &input, bool trainMode = false);
     void eachParameter(const std::function<void(Tensor &parameter)> &callback);
     void eachGradient(const std::function<void(Tensor &parameter, Tensor &gradient)> &callback);
     void eachBuffer(const std::function<void(Tensor &buffer)> &callback);
@@ -25,6 +25,7 @@ public:
         Node node;
         Node::Type type;
         Operations::Operation callback;
+        Operations::Operation trainCallback;
         Tensor value;
     };
 

@@ -31,15 +31,23 @@ Node dense(Node x, int in, int out){
     return Node::parameter({out, in}).dot(x) + Node::parameter({out,1});
 }
 
+Node dropout(Node x, double rate = 0.5){
+    Node mask = x("dropout", rate);
+    return x * mask;
+}
+
 Node network(std::vector<int> layers){
     Node x = Node::input(layers[0]);
     for(int i = 1; i < layers.size(); i++){
         Node xin = x;
         x = dense(x, layers[i-1], layers[i]);
         if(i != layers.size() - 1) {
-            x = tanh(x);
+            x = relu(x);
             if (layers[i - 1] == layers[i]) {
                 x = x + xin;
+            }
+            if(i == layers.size() - 2){
+                x = dropout(x, 0.25);
             }
         }
     }
@@ -83,7 +91,7 @@ int main(int argc, char *argv[]){
     Node net = network({1, 10, 10, 10, 1});
     Model model(net);
     model.loss = std::make_shared<MeanSquaredError>();
-    model.optimizer = std::make_shared<Adam>(0.001);
+    model.optimizer = std::make_shared<Adam>();
     model.optimizer->batchSize = input.shape(1);
     std::cout << toString(model.forward) << std::endl;
     std::cout << toString(model.backward) << std::endl;
@@ -92,12 +100,15 @@ int main(int argc, char *argv[]){
 
     //training
     Clock clock;
-    for(int i = 0; i < 10000; i++) {
+    for(int i = 0; i < 100000; i++) {
         double loss = model.samples(input, target, samples);
         if(i % 500 == 0){
             std::cout << "loss: " << loss << std::endl;
         }
     }
+    model.resetToBest();
+    std::cout << "best loss: " << model.bestLoss << std::endl;
+    std::cout << "test loss: " << model.loss->value(model.predict(input), target) << std::endl;
 
     double duration = clock.elapsed();
 
@@ -105,7 +116,7 @@ int main(int argc, char *argv[]){
     std::cout << std::endl;
     for(int c = 0; c < samples; c++){
         Tensor in =  xt::view(input, xt::all(), c, xt::newaxis());
-        Tensor out = model.forward.run(in);
+        Tensor out = model.predict(in);
         Tensor tar = xt::view(target, xt::all(), c, xt::newaxis());
         std::cout << xt::view(in, xt::all(), 0) << ", " << xt::view(out, xt::all(), 0) << ", " << xt::view(tar, xt::all(), 0) << std::endl;
     }

@@ -55,6 +55,10 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
 
             step->operation = node.impl->operation;
             step->callback = Operations::get(step->operation);
+            step->trainCallback = step->callback;
+            if(Operations::exists(step->operation + "-train")){
+                step->trainCallback = Operations::get(step->operation + "-train");
+            }
             for (auto &n : node.impl->operands) {
                 step->operands.push_back(generateStep(n));
             }
@@ -73,6 +77,10 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
         case Node::OPERATION:{
             step->operation = node.impl->operation;
             step->callback = Operations::get(step->operation);
+            step->trainCallback = step->callback;
+            if(Operations::exists(step->operation + "-train")){
+                step->trainCallback = Operations::get(step->operation + "-train");
+            }
             for(auto &n : node.impl->operands){
                 step->operands.push_back(generateStep(n));
             }
@@ -90,9 +98,11 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
     return step;
 }
 
-const Tensor &Sequence::run(const Tensor &input) {
+const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
     std::shared_ptr<Step> output;
+    int index = 0;
     for(auto &s : steps){
+        index++;
         switch (s->type) {
             case Node::INPUT:
                 s->value = input;
@@ -106,14 +116,23 @@ const Tensor &Sequence::run(const Tensor &input) {
             case Node::BUFFER:
             case Node::GRADIENT:
             case Node::OPERATION:{
-                if(s->operands.size() == 2){
-                    s->callback(s->value, s->operands[0]->value, s->operands[1]->value);
+                Tensor *rhs;
+                if(s->operands.size() >= 2) {
+                    rhs = &s->operands[1]->value;
                 }else if(s->operands.size() == 1){
-                    s->callback(s->value, s->operands[0]->value, s->operands[0]->value);
+                    rhs = &s->operands[0]->value;
+                }
+                if(s->operands.size() >= 1) {
+                    if (trainMode) {
+                        s->trainCallback(s->value, s->operands[0]->value, *rhs);
+                    } else {
+                        s->callback(s->value, s->operands[0]->value, *rhs);
+                    }
                 }
                 break;
             }
         }
+        //std::cout << index << ": " << s->value << std::endl << std::endl;
     }
     if(output){
         return output->value;

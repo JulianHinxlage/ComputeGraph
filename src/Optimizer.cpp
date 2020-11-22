@@ -54,7 +54,7 @@ void MomentumGradientDescent::updateRule(Each each) {
 }
 
 
-Adam::Adam(double learningRate, double beta1, double beta2, int batchSize){
+Adam::Adam(double learningRate, double beta1, double beta2, int batchSize, double decay, double epsilon){
     this->learningRate = learningRate;
     this->batchSize = batchSize;
     this->beta1 = beta1;
@@ -62,7 +62,8 @@ Adam::Adam(double learningRate, double beta1, double beta2, int batchSize){
     sampleCounter = 0;
     beta1t = 1;
     beta2t = 1;
-    parameterDecayRate = 0;
+    this->decay = decay;
+    this->epsilon = epsilon;
 }
 
 void Adam::updateRule(Each each){
@@ -76,11 +77,11 @@ void Adam::updateRule(Each each){
         gradientMomentum1[i] = gradientMomentum1[i] * beta1 + gradient * (1.0 - beta1);
         gradientMomentum2[i] = gradientMomentum2[i] * beta2 + (gradient * gradient) * (1.0 - beta2);
 
-        parameter -= xt::vectorize([&](double m, double v){
+        parameter -= xt::vectorize([&](double m, double v, double p){
             m /= (1.0 - beta1t);
             v /= (1.0 - beta2t);
-            return learningRate * m / (std::sqrt(v) + 1e-10);
-        })(gradientMomentum1[i], gradientMomentum2[i]) + learningRate * parameterDecayRate * parameter;
+            return learningRate * (m / (std::sqrt(v) + epsilon) + decay * p);
+        })(gradientMomentum1[i], gradientMomentum2[i], parameter);
         gradient *= 0;
         i++;
     });

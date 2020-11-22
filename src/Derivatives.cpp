@@ -89,5 +89,11 @@ void Derivatives::init() {
     OP("sum"){
         lhsResult = gradient;
     };
+    OP("random"){
+        lhsResult = gradient * 0;
+    };
+    OP("dropout"){
+        lhsResult = gradient * 0;
+    };
 
 }

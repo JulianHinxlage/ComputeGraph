@@ -5,9 +5,12 @@
 #include "Model.h"
 #include "Differentiator.h"
 
-Model::Model() {}
+Model::Model() {
+    bestLoss = INFINITY;
+}
 
 Model::Model(Node &node) {
+    bestLoss = INFINITY;
     compile(node);
 }
 
@@ -28,8 +31,18 @@ void Model::compile(Node &node) {
 }
 
 double Model::samples(const Tensor &input, const Tensor &target, int samples) {
-    Tensor output = forward.run(input);
+    Tensor output = forward.run(input, true);
     double lossValue = loss->value(output, target);
+
+
+    if(lossValue < bestLoss){
+        bestLoss = lossValue;
+        bestParameter.clear();
+        forward.eachParameter([&](Tensor &p){
+            bestParameter.push_back(p);
+        });
+    }
+
     Tensor gradient = loss->gradient(output, target);
     backward.run(gradient);
     optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
@@ -47,10 +60,21 @@ double Model::columnSamples(const Tensor &input, const Tensor &target, int epoch
     return lossValue;
 }
 
+const Tensor &Model::predict(const Tensor &input) {
+    return forward.run(input);
+}
+
 int Model::totalParameterCount() {
     int count = 0;
     forward.eachParameter([&](Tensor &p){
        count += p.size();
     });
     return count;
+}
+
+void Model::resetToBest() {
+    int i = 0;
+    forward.eachParameter([&](Tensor &p){
+        p = bestParameter[i++];
+    });
 }

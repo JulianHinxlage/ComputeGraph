@@ -21,6 +21,10 @@ const Operations::Operation &Operations::get(const std::string &name) {
     }
 }
 
+bool Operations::exists(const std::string &name) {
+    return operations.find(name) != operations.end();
+}
+
 void Operations::init() {
     identityOperation = [](Tensor &result, Tensor &lhs, Tensor &rhs){
         result = lhs;
@@ -95,6 +99,15 @@ void Operations::init() {
     };
     OP("sum"){
         result = xt::sum(lhs);
+    };
+    OP("random"){
+        result = xt::random::rand<double>(lhs.shape());
+    };
+    OP("dropout"){
+        result = xt::ones<double>(lhs.shape()) * (1.0 - rhs);
+    };
+    OP("dropout-train"){
+        result = xt::random::rand<double>(lhs.shape()) > rhs;
     };
 
 }

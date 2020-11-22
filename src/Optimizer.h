@@ -39,9 +39,10 @@ public:
     std::vector<Tensor> gradientMomentum2;
     double beta1t;
     double beta2t;
-    double parameterDecayRate;
+    double decay;
+    double epsilon;
 
-    Adam(double learningRate = 0.01, double beta1 = 0.9, double beta2 = 0.999, int batchSize = 1);
+    Adam(double learningRate = 0.001, double beta1 = 0.9, double beta2 = 0.999, int batchSize = 1, double decay = 0, double epsilon = 1e-8);
     virtual void updateRule(Each each) override;
 };
 

@@ -13,6 +13,7 @@ public:
     static void init();
     static void add(const std::string &name, const Operation &operation);
     static const Operation &get(const std::string &name);
+    static bool exists(const std::string &name);
 };
 
 
