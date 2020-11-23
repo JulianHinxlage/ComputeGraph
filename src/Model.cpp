@@ -5,12 +5,9 @@
 #include "Model.h"
 #include "Differentiator.h"
 
-Model::Model() {
-    bestLoss = INFINITY;
-}
+Model::Model() {}
 
 Model::Model(Node &node) {
-    bestLoss = INFINITY;
     compile(node);
 }
 
@@ -27,54 +24,56 @@ void Model::compile(Node &node) {
     });
 }
 
-void Model::checkBest(double lossValue){
-    if(lossValue < bestLoss){
-        bestLoss = lossValue;
-        bestParameter.clear();
-        forward.eachParameter([&](Tensor &p){
-            bestParameter.push_back(p);
-        });
-    }
-}
-
-double Model::samples(const Tensor &input, const Tensor &target, int samples) {
-    Tensor output = forward.run(input, true);
-    double lossValue = loss->value(output, target);
-
-    checkBest(lossValue);
-
-    Tensor gradient = loss->gradient(output, target);
-    backward.run(gradient);
-    optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
-    return lossValue;
-}
-
-double Model::columnSamples(const Tensor &input, const Tensor &target, int epochs){
-    double lossValue = 0;
-    for(int epoch = 0; epoch < epochs; epoch++){
-        lossValue = 0;
-        for(int i = 0; i < input.shape(1); i++){
-            lossValue += samples(xt::view(input, xt::all(), i, xt::newaxis()), xt::view(target, xt::all(), i, xt::newaxis()));
-        }
-    }
-    return lossValue;
-}
-
 const Tensor &Model::predict(const Tensor &input) {
     return forward.run(input);
+}
+
+const Tensor &Model::gradient(const Tensor &gradient) {
+    auto &output = backward.run(gradient);
+    optimizer->update([&](auto &c){backward.eachGradient(c);}, 1);
+    return output;
+}
+
+void Model::updateOptimizer(int samples){
+    optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
+}
+
+
+
+double Model::fit(const Tensor &input, const Tensor &target, int samples, int epochs) {
+    double loss = 0;
+    for(int epoch = 0; epoch < epochs; epoch++) {
+        Tensor output = forward.run(input, true);
+        loss = lossFunction->value(output, target);
+        Tensor gradient = lossFunction->gradient(output, target);
+        backward.run(gradient);
+        optimizer->update([&](auto &c) { backward.eachGradient(c); }, samples);
+    }
+    return loss;
+}
+
+double Model::fitColumns(const Tensor &input, const Tensor &target, int epochs) {
+    double loss = 0;
+    for(int epoch = 0; epoch < epochs; epoch++) {
+        loss = 0;
+        for(int sample = 0; sample < input.shape(1); sample++) {
+            auto sampleInput = xt::view(input, xt::all(), sample, xt::newaxis());
+            auto sampleTarget = xt::view(target, xt::all(), sample, xt::newaxis());
+
+            Tensor output = forward.run(sampleInput, true);
+            loss += lossFunction->value(output, sampleTarget);
+            Tensor gradient = lossFunction->gradient(output, sampleTarget);
+            backward.run(gradient);
+            optimizer->update([&](auto &c) { backward.eachGradient(c); }, 1);
+        }
+    }
+    return loss;
 }
 
 int Model::totalParameterCount() {
     int count = 0;
     forward.eachParameter([&](Tensor &p){
-       count += p.size();
+        count += p.size();
     });
     return count;
-}
-
-void Model::resetToBest() {
-    int i = 0;
-    forward.eachParameter([&](Tensor &p){
-        p = bestParameter[i++];
-    });
 }

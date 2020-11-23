@@ -12,24 +12,20 @@
 class Model {
 public:
     std::shared_ptr<Optimizer> optimizer;
-    std::shared_ptr<Loss> loss;
+    std::shared_ptr<Loss> lossFunction;
     Sequence forward;
     Sequence backward;
-
-    std::vector<Tensor> bestParameter;
-    double bestLoss;
 
     Model();
     Model(Node &node);
     void compile(Node &node);
     const Tensor &predict(const Tensor &input);
+    const Tensor &gradient(const Tensor &gradient);
+    void updateOptimizer(int samples);
 
-    double samples(const Tensor &input, const Tensor &target, int samples = 1);
-    double columnSamples(const Tensor &input, const Tensor &target, int epochs = 1);
-
+    double fit(const Tensor &input, const Tensor &target, int samples = 1, int epochs = 1);
+    double fitColumns(const Tensor &input, const Tensor &target, int epochs = 1);
     int totalParameterCount();
-    void resetToBest();
-    void checkBest(double lossValue);
 };
 
 
