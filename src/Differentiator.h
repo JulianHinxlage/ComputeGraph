@@ -5,11 +5,11 @@
 #ifndef COMPUTEGRAPH_DIFFERENTIATOR_H
 #define COMPUTEGRAPH_DIFFERENTIATOR_H
 
-#include "Node.h"
+#include "Graph.h"
 
 class Differentiator {
 public:
-    Node differentiate(Node &node, std::vector<Node> &gradients);
+    Graph differentiate(Node &node);
 private:
     Node differentiateStep(Node &node);
     void each(Node &node, const std::function<void(Node &node)> &callback);

@@ -5,7 +5,7 @@
 #include "Differentiator.h"
 #include "Derivatives.h"
 
-Node Differentiator::differentiate(Node &node, std::vector<Node> &gradients) {
+Graph Differentiator::differentiate(Node &node) {
     gradientLists.clear();
     gradientResults.clear();
 
@@ -21,14 +21,14 @@ Node Differentiator::differentiate(Node &node, std::vector<Node> &gradients) {
         }
     });
 
-    std::vector<Node> inputGradients;
+    Graph graph;
     each(node, [&](Node &node){
         if(node.impl->type == Node::INPUT){
             Node n;
             n.impl->type = Node::OUTPUT;
             n.impl->operands.push_back(differentiateStep(node));
             n.impl->operation = "=";
-            inputGradients.push_back(n);
+            graph.add(n);
         }else if(node.impl->type == Node::PARAMETER){
             Node n;
             n.impl->type = Node::GRADIENT;
@@ -36,11 +36,11 @@ Node Differentiator::differentiate(Node &node, std::vector<Node> &gradients) {
             n.impl->operands.push_back(node);
             n.impl->shape = node.impl->shape;
             n.impl->operation = "+=";
-            gradients.push_back(n);
+            graph.add(n);
         }
     });
 
-    return inputGradients[0];
+    return graph;
 }
 
 Node Differentiator::differentiateStep(Node &node) {

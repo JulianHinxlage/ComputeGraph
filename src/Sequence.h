@@ -5,14 +5,14 @@
 #ifndef COMPUTEGRAPH_SEQUENCE_H
 #define COMPUTEGRAPH_SEQUENCE_H
 
-#include "Node.h"
+#include "Graph.h"
 #include "Operations.h"
 
 class Sequence {
 public:
     Sequence();
     void setParent(const Sequence &parent);
-    void generate(const Node &node);
+    void generate(const Graph &graph);
     const Tensor &run(const Tensor &input, bool trainMode = false);
     void eachParameter(const std::function<void(Tensor &parameter)> &callback);
     void eachGradient(const std::function<void(Tensor &parameter, Tensor &gradient)> &callback);

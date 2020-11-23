@@ -10,11 +10,10 @@ void Sequence::setParent(const Sequence &parent) {
     parentSteps = parent.steps;
 }
 
-void Sequence::generate(const Node &node) {
-    if(node.impl->type == Node::OPERATION){
-        node.impl->type = Node::OUTPUT;
+void Sequence::generate(const Graph &graph) {
+    for(auto &node : graph.nodes){
+        generateStep(node);
     }
-    generateStep(node);
 }
 
 std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {

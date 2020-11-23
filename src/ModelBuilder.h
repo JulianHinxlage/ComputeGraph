@@ -15,6 +15,11 @@ public:
     std::unordered_map<int, Node> residualLinks;
     ModelBuilder();
 
+    static Node relu(Node node);
+    static Node sigmoid(Node node);
+    static Node tanh(Node node);
+    static Node softmax(Node node);
+
     void input(const Shape &shape = {1});
     void relu();
     void sigmoid();

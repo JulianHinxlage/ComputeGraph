@@ -46,7 +46,6 @@ int main(int argc, char *argv[]){
     net.dropout(0.25);
     net.dense(1);
 
-
     Model model(net.node);
     model.loss = std::make_shared<MeanSquaredError>();
     model.optimizer = std::make_shared<Adam>();
@@ -54,7 +53,7 @@ int main(int argc, char *argv[]){
     std::cout << toString(model.forward) << std::endl;
     std::cout << toString(model.backward) << std::endl;
 
-    std::cout << model.totalParameterCount() << " parameters" << std::endl << std::endl;
+    std::cout << model.totalParameterCount() << " parameter" << std::endl << std::endl;
 
     //training
     Clock clock;

@@ -13,36 +13,36 @@ void ModelBuilder::input(const Shape &shape) {
     outputSize = shape.get(0);
 }
 
-Node relu(Node node) {
+Node ModelBuilder::relu(Node node) {
     return max(node, node * 0.01);
 }
 
-Node sigmoid(Node node) {
+Node ModelBuilder::sigmoid(Node node) {
     return inv(exp(-node) + 1.0);
 }
 
-Node tanh(Node node) {
+Node ModelBuilder::tanh(Node node) {
     return -(inv(exp(node * 2.0) + 1.0) * 2.0) + 1.0;
 }
 
-Node softmax(Node node) {
+Node ModelBuilder::softmax(Node node) {
     return exp(node) / sum(exp(node));
 }
 
 void ModelBuilder::relu() {
-    node = max(node, node * 0.01);
+    node = relu(node);
 }
 
 void ModelBuilder::sigmoid() {
-    node = inv(exp(-node) + 1.0);
+    node = sigmoid(node);
 }
 
 void ModelBuilder::tanh() {
-    node = -(inv(exp(node * 2.0) + 1.0) * 2.0) + 1.0;
+    node = tanh(node);
 }
 
 void ModelBuilder::softmax() {
-    node = exp(node) / sum(exp(node));
+    node = softmax(node);
 }
 
 void ModelBuilder::dense(int size) {
@@ -89,10 +89,10 @@ void ModelBuilder::lstm(int size) {
     Node o = Node::parameter({size, outputSize}).dot(node) + Node::parameter({size,1}) + Node::parameter({size, size}).dot(output);
     Node c = Node::parameter({size, outputSize}).dot(node) + Node::parameter({size,1}) + Node::parameter({size, size}).dot(output);
 
-    f = ::sigmoid(f);
-    i = ::sigmoid(i);
-    o = ::sigmoid(o);
-    c = ::tanh(c);
+    f = sigmoid(f);
+    i = sigmoid(i);
+    o = sigmoid(o);
+    c = tanh(c);
 
     Node cell2 = f * cell + i * c;
     cell = cell2;

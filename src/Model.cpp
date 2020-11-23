@@ -17,24 +17,17 @@ Model::Model(Node &node) {
 void Model::compile(Node &node) {
     forward.generate(node);
     Differentiator differentiator;
-    std::vector<Node> gradients;
-    Node inputGradient = differentiator.differentiate(node, gradients);
+
+    Graph gradientGraph = differentiator.differentiate(node);
     backward.setParent(forward);
-    backward.generate(inputGradient);
-    for(Node &gradient : gradients){
-        backward.generate(gradient);
-    }
+    backward.generate(gradientGraph);
 
     forward.eachParameter([&](Tensor &parameter){
         parameter = xt::random::rand<double>(parameter.shape(), -1, 1);
     });
 }
 
-double Model::samples(const Tensor &input, const Tensor &target, int samples) {
-    Tensor output = forward.run(input, true);
-    double lossValue = loss->value(output, target);
-
-
+void Model::checkBest(double lossValue){
     if(lossValue < bestLoss){
         bestLoss = lossValue;
         bestParameter.clear();
@@ -42,6 +35,13 @@ double Model::samples(const Tensor &input, const Tensor &target, int samples) {
             bestParameter.push_back(p);
         });
     }
+}
+
+double Model::samples(const Tensor &input, const Tensor &target, int samples) {
+    Tensor output = forward.run(input, true);
+    double lossValue = loss->value(output, target);
+
+    checkBest(lossValue);
 
     Tensor gradient = loss->gradient(output, target);
     backward.run(gradient);

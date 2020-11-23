@@ -22,11 +22,14 @@ public:
     Model();
     Model(Node &node);
     void compile(Node &node);
+    const Tensor &predict(const Tensor &input);
+
     double samples(const Tensor &input, const Tensor &target, int samples = 1);
     double columnSamples(const Tensor &input, const Tensor &target, int epochs = 1);
-    const Tensor &predict(const Tensor &input);
+
     int totalParameterCount();
     void resetToBest();
+    void checkBest(double lossValue);
 };
 
 
