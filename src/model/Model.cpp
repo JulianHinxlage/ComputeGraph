@@ -3,7 +3,7 @@
 //
 
 #include "Model.h"
-#include "Differentiator.h"
+#include "graph/Differentiator.h"
 
 Model::Model() {}
 

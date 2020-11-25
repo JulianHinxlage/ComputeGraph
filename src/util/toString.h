@@ -5,7 +5,7 @@
 #ifndef COMPUTEGRAPH_TOSTRING_H
 #define COMPUTEGRAPH_TOSTRING_H
 
-#include "Sequence.h"
+#include "graph/Sequence.h"
 
 std::string toString(Sequence &sequence);
 

@@ -5,7 +5,7 @@
 #ifndef COMPUTEGRAPH_LOSS_H
 #define COMPUTEGRAPH_LOSS_H
 
-#include "Tensor.h"
+#include "graph/Tensor.h"
 
 class Loss {
 public:

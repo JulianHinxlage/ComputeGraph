@@ -5,7 +5,7 @@
 #ifndef COMPUTEGRAPH_OPTIMIZER_H
 #define COMPUTEGRAPH_OPTIMIZER_H
 
-#include "Tensor.h"
+#include "graph/Tensor.h"
 
 class Optimizer {
 public:

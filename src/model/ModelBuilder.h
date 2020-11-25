@@ -5,7 +5,7 @@
 #ifndef COMPUTEGRAPH_MODELBUILDER_H
 #define COMPUTEGRAPH_MODELBUILDER_H
 
-#include "Node.h"
+#include "graph/Node.h"
 #include <unordered_map>
 
 class ModelBuilder {

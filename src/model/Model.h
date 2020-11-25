@@ -5,7 +5,7 @@
 #ifndef COMPUTEGRAPH_MODEL_H
 #define COMPUTEGRAPH_MODEL_H
 
-#include "Sequence.h"
+#include "graph/Sequence.h"
 #include "Optimizer.h"
 #include "Loss.h"
 

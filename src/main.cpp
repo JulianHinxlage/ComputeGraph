@@ -2,18 +2,17 @@
 // Copyright (c) 2020 Julian Hinxlage. All rights reserved.
 //
 
-#include "Operations.h"
-#include "Derivatives.h"
-#include "toString.h"
-#include "Model.h"
-#include "Clock.h"
-#include "Tensor.h"
-#include "ModelBuilder.h"
-#include "ModelState.h"
+#include "graph/Operations.h"
+#include "graph/Derivatives.h"
+#include "util/toString.h"
+#include "model/Model.h"
+#include "util/Clock.h"
+#include "graph/Tensor.h"
+#include "model/ModelBuilder.h"
+#include "model/ModelState.h"
 #include <iostream>
 
 int main(int argc, char *argv[]){
-
     //init
     Operations::init();
     Derivatives::init();
