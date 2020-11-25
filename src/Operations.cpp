@@ -91,6 +91,26 @@ void Operations::init() {
         result = xt::minimum(lhs, rhs);
     };
 
+    OP("concat"){
+        result = xt::concatenate(xt::xtuple(lhs, rhs));
+    };
+    OP("split-left"){
+        auto shape = rhs.shape();
+        if(shape.size() == 1){
+            result = xt::view(lhs, xt::range(0, shape[0]));
+        }else if(shape.size() == 2){
+            result = xt::view(lhs, xt::range(0, shape[0]), xt::all());
+        }
+    };
+    OP("split-right"){
+        auto shape = rhs.shape();
+        if(shape.size() == 1){
+            result = xt::view(lhs, xt::range(shape[0],lhs.shape(0)));
+        }else if(shape.size() == 2){
+            result = xt::view(lhs, xt::range(shape[0],lhs.shape(0)), xt::all());
+        }
+    };
+
     OP("exp"){
         result = xt::exp(lhs);
     };

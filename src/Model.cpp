@@ -7,15 +7,15 @@
 
 Model::Model() {}
 
-Model::Model(Node &node) {
-    compile(node);
+Model::Model(Graph graph) {
+    compile(graph);
 }
 
-void Model::compile(Node &node) {
-    forward.generate(node);
+void Model::compile(Graph graph) {
+    forward.generate(graph.nodes[0]);
     Differentiator differentiator;
 
-    Graph gradientGraph = differentiator.differentiate(node);
+    Graph gradientGraph = differentiator.differentiate(graph.nodes[0]);
     backward.setParent(forward);
     backward.generate(gradientGraph);
 
@@ -57,8 +57,8 @@ double Model::fitColumns(const Tensor &input, const Tensor &target, int epochs) 
     for(int epoch = 0; epoch < epochs; epoch++) {
         loss = 0;
         for(int sample = 0; sample < input.shape(1); sample++) {
-            auto sampleInput = xt::view(input, xt::all(), sample, xt::newaxis());
-            auto sampleTarget = xt::view(target, xt::all(), sample, xt::newaxis());
+            auto sampleInput = xt::view(input, xt::all(), sample);
+            auto sampleTarget = xt::view(target, xt::all(), sample);
 
             Tensor output = forward.run(sampleInput, true);
             loss += lossFunction->value(output, sampleTarget);

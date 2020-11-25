@@ -72,6 +72,11 @@ void Derivatives::init() {
         rhsResult = gradient * (lhs > rhs);
     };
 
+    OP("concat"){
+        lhsResult = gradient("split-left", lhs);
+        rhsResult = gradient("split-right", rhs);
+    };
+
     OP("max"){
         lhsResult = gradient * (lhs > rhs);
         rhsResult = gradient * (lhs <= rhs);

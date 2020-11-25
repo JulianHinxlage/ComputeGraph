@@ -104,7 +104,11 @@ const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
         index++;
         switch (s->type) {
             case Node::INPUT:
-                s->value = input;
+                if(input.shape().size() == 1){
+                    s->value = xt::view(input, xt::all(), xt::newaxis());
+                }else{
+                    s->value = input;
+                }
                 break;
             case Node::CONSTANT:
                 break;
@@ -134,8 +138,14 @@ const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
         //std::cout << index << ": " << s->value << std::endl << std::endl;
     }
     if(output){
+        if(input.shape().size() == 1){
+            output->value = xt::flatten(output->value);
+        }
         return output->value;
     }else{
+        if(input.shape().size() == 1){
+            steps.back()->value = xt::flatten(steps.back()->value);
+        }
         return steps.back()->value;
     }
 }

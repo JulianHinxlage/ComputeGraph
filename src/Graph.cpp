@@ -12,7 +12,13 @@ Graph::Graph(const Node &node) {
 
 void Graph::add(const Node &node) {
     if(node.impl->type == Node::OPERATION){
-        node.impl->type = Node::OUTPUT;
+        Node n;
+        n.impl->type = Node::OUTPUT;
+        n.impl->operands.push_back(node);
+        n.impl->operation = "=";
+        //node.impl->type = Node::OUTPUT;
+        nodes.push_back(n);
+    }else{
+        nodes.push_back(node);
     }
-    nodes.push_back(node);
 }

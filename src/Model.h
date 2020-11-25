@@ -17,8 +17,8 @@ public:
     Sequence backward;
 
     Model();
-    Model(Node &node);
-    void compile(Node &node);
+    Model(Graph graph);
+    void compile(Graph graph);
     const Tensor &predict(const Tensor &input);
     const Tensor &gradient(const Tensor &gradient);
     void updateOptimizer(int samples);
