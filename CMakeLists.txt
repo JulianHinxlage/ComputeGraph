@@ -7,6 +7,7 @@ file(GLOB_RECURSE SOURCE
         src/graph/*.cpp
         src/model/*.cpp
         src/util/*.cpp
+        src/reinforcement/*.cpp
 )
 add_library(${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC src)
@@ -21,6 +22,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC extern/xtensor/include)
 target_include_directories(${PROJECT_NAME} PUBLIC extern/xtensor-blas/include)
 
 
-project(ComputeGraph)
-add_executable(${PROJECT_NAME} src/main.cpp)
+project(ComputeGraphNN)
+add_executable(${PROJECT_NAME} src/nnTest.cpp)
 target_link_libraries(${PROJECT_NAME} ComputeGraphBase)
+
+project(ComputeGraphQ)
+add_executable(${PROJECT_NAME} src/qTest.cpp)
+target_link_libraries(${PROJECT_NAME} ComputeGraphBase)
+
+
+project(ComputeGraph)

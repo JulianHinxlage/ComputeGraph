@@ -29,16 +29,12 @@ const Tensor &Model::predict(const Tensor &input) {
 }
 
 const Tensor &Model::gradient(const Tensor &gradient) {
-    auto &output = backward.run(gradient);
-    optimizer->update([&](auto &c){backward.eachGradient(c);}, 1);
-    return output;
+    return backward.run(gradient);
 }
 
 void Model::updateOptimizer(int samples){
     optimizer->update([&](auto &c){backward.eachGradient(c);}, samples);
 }
-
-
 
 double Model::fit(const Tensor &input, const Tensor &target, int samples, int epochs) {
     double loss = 0;
