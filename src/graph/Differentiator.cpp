@@ -5,40 +5,47 @@
 #include "Differentiator.h"
 #include "Derivatives.h"
 
-Graph Differentiator::differentiate(Node &node) {
+Graph Differentiator::differentiate(Graph inputGraph) {
+    Derivatives::init();
+    Operations::init();
     gradientLists.clear();
     gradientResults.clear();
 
-    //clear usage
-    each(node, [](Node &node){
-       node.impl->usage.clear();
-    });
-
-    //update usage
-    each(node, [](Node &node){
-        for(auto &n : node.impl->operands){
-            n.impl->usage.push_back(node);
-        }
-    });
-
     Graph graph;
-    each(node, [&](Node &node){
-        if(node.impl->type == Node::INPUT){
-            Node n;
-            n.impl->type = Node::OUTPUT;
-            n.impl->operands.push_back(differentiateStep(node));
-            n.impl->operation = "=";
-            graph.add(n);
-        }else if(node.impl->type == Node::PARAMETER){
-            Node n;
-            n.impl->type = Node::GRADIENT;
-            n.impl->operands.push_back(differentiateStep(node));
-            n.impl->operands.push_back(node);
-            n.impl->shape = node.impl->shape;
-            n.impl->operation = "+=";
-            graph.add(n);
-        }
-    });
+    for(auto &node : inputGraph.nodes) {
+        //clear usage
+        each(node, [](Node &node) {
+            node.impl->usage.clear();
+        });
+    }
+    for(auto &node : inputGraph.nodes) {
+        //update usage
+        each(node, [](Node &node) {
+            for (auto &n : node.impl->operands) {
+                n.impl->usage.push_back(node);
+            }
+        });
+    }
+    std::vector<Node> visited;
+    for(auto &node : inputGraph.nodes) {
+        each(node, [&](Node &node) {
+            if (node.impl->type == Node::INPUT) {
+                Node n;
+                n.impl->type = Node::OUTPUT;
+                n.impl->operands.push_back(differentiateStep(node));
+                n.impl->operation = "=";
+                graph.add(n);
+            } else if (node.impl->type == Node::PARAMETER) {
+                Node n;
+                n.impl->type = Node::GRADIENT;
+                n.impl->operands.push_back(differentiateStep(node));
+                n.impl->operands.push_back(node);
+                n.impl->shape = node.impl->shape;
+                n.impl->operation = "+=";
+                graph.add(n);
+            }
+        }, visited);
+    }
 
     return graph;
 }

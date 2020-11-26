@@ -11,6 +11,7 @@ void Sequence::setParent(const Sequence &parent) {
 }
 
 void Sequence::generate(const Graph &graph) {
+    Operations::init();
     for(auto &node : graph.nodes){
         generateStep(node);
     }
@@ -97,25 +98,25 @@ std::shared_ptr<Sequence::Step> Sequence::generateStep(const Node &node) {
     return step;
 }
 
-const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
-    std::shared_ptr<Step> output;
-    int index = 0;
+const std::vector<Tensor> &Sequence::runMultiple(const std::vector<Tensor> &inputs, bool trainMode){
+    returnBuffer.clear();
+    int inputIndex = 0;
     for(auto &s : steps){
-        index++;
         switch (s->type) {
-            case Node::INPUT:
-                if(input.shape().size() == 1){
+            case Node::INPUT: {
+                auto &input = inputs[inputIndex++];
+                if (input.shape().size() == 1) {
                     s->value = xt::view(input, xt::all(), xt::newaxis());
-                }else{
+                } else {
                     s->value = input;
                 }
                 break;
+            }
             case Node::CONSTANT:
                 break;
             case Node::PARAMETER:
                 break;
             case Node::OUTPUT:
-                output = s;
             case Node::BUFFER:
             case Node::GRADIENT:
             case Node::OPERATION:{
@@ -132,22 +133,22 @@ const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
                         s->callback(s->value, s->operands[0]->value, *rhs);
                     }
                 }
+
+                if(s->type == Node::OUTPUT){
+                    if(inputs[0].shape().size() == 1){
+                        s->value = xt::flatten(s->value);
+                    }
+                    returnBuffer.push_back(s->value);
+                }
                 break;
             }
         }
-        //std::cout << index << ": " << s->value << std::endl << std::endl;
     }
-    if(output){
-        if(input.shape().size() == 1){
-            output->value = xt::flatten(output->value);
-        }
-        return output->value;
-    }else{
-        if(input.shape().size() == 1){
-            steps.back()->value = xt::flatten(steps.back()->value);
-        }
-        return steps.back()->value;
-    }
+    return returnBuffer;
+}
+
+const Tensor &Sequence::run(const Tensor &input, bool trainMode) {
+    return runMultiple({input}, trainMode)[0];
 }
 
 void Sequence::eachParameter(const std::function<void(Tensor &)> &callback) {

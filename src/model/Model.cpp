@@ -12,10 +12,10 @@ Model::Model(Graph graph) {
 }
 
 void Model::compile(Graph graph) {
-    forward.generate(graph.nodes[0]);
+    forward.generate(graph);
     Differentiator differentiator;
 
-    Graph gradientGraph = differentiator.differentiate(graph.nodes[0]);
+    Graph gradientGraph = differentiator.differentiate(graph);
     backward.setParent(forward);
     backward.generate(gradientGraph);
 

@@ -7,6 +7,7 @@
 
 static std::unordered_map<std::string, Operations::Operation> operations;
 static Operations::Operation identityOperation;
+static bool initedOperations = false;
 
 void Operations::add(const std::string &name, const Operations::Operation &operation) {
     operations[name] = operation;
@@ -26,6 +27,11 @@ bool Operations::exists(const std::string &name) {
 }
 
 void Operations::init() {
+    if(initedOperations){
+        return;
+    }
+    initedOperations = true;
+
     identityOperation = [](Tensor &result, Tensor &lhs, Tensor &rhs){
         result = lhs;
     };

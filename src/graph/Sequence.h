@@ -13,6 +13,7 @@ public:
     Sequence();
     void setParent(const Sequence &parent);
     void generate(const Graph &graph);
+    const std::vector<Tensor> &runMultiple(const std::vector<Tensor> &inputs, bool trainMode = false);
     const Tensor &run(const Tensor &input, bool trainMode = false);
     void eachParameter(const std::function<void(Tensor &parameter)> &callback);
     void eachGradient(const std::function<void(Tensor &parameter, Tensor &gradient)> &callback);
@@ -31,8 +32,8 @@ public:
 
     std::vector<std::shared_ptr<Step>> steps;
     std::vector<std::shared_ptr<Step>> parentSteps;
-
 private:
+    std::vector<Tensor> returnBuffer;
     std::shared_ptr<Step> generateStep(const Node &node);
 };
 

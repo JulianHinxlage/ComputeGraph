@@ -9,7 +9,7 @@
 
 class Differentiator {
 public:
-    Graph differentiate(Node &node);
+    Graph differentiate(Graph graph);
 private:
     Node differentiateStep(Node &node);
     void each(Node &node, const std::function<void(Node &node)> &callback);

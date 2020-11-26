@@ -2,8 +2,6 @@
 // Copyright (c) 2020 Julian Hinxlage. All rights reserved.
 //
 
-#include "graph/Operations.h"
-#include "graph/Derivatives.h"
 #include "util/toString.h"
 #include "model/Model.h"
 #include "util/Clock.h"
@@ -14,8 +12,6 @@
 
 int main(int argc, char *argv[]){
     //init
-    Operations::init();
-    Derivatives::init();
     xt::random::seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
     //data set

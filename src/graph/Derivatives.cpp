@@ -6,6 +6,7 @@
 
 static std::unordered_map<std::string, Derivatives::Operation> operations;
 static Derivatives::Operation identityOperation;
+static bool initedDerivatives = false;
 
 void Derivatives::add(const std::string &name, const Derivatives::Operation &operation) {
     operations[name] = operation;
@@ -21,6 +22,11 @@ const Derivatives::Operation &Derivatives::get(const std::string &name) {
 }
 
 void Derivatives::init() {
+    if(initedDerivatives){
+        return;
+    }
+    initedDerivatives = true;
+
     identityOperation = [](Node &lhsResult, Node &rhsResult, Node &lhs, Node &rhs, Node &gradient){
         lhsResult = gradient;
     };
