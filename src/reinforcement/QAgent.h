@@ -12,11 +12,13 @@ class QAgent : public Agent{
 public:
     int actionCount;
     LookupTable values;
-    double explorationRate;
     double stepSize;
+    LookupTable visits;
+    bool explore;
+    double upperConfidenceFactor;
     QAgent(int actionCount);
     virtual int policyStep(const Tensor &state) override;
-    virtual void train(int steps) override;
+    virtual void trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2) override;
 
     double getQ(const Tensor &state, int action);
     void setQ(const Tensor &state, int action, double q);

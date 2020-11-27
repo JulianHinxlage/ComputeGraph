@@ -6,17 +6,22 @@
 
 QAgent::QAgent(int actionCount) {
     this->actionCount = actionCount;
-    explorationRate = 0.1;
     updateAccumulativeRewards = false;
     stepSize = 0.01;
+    explore = true;
+    upperConfidenceFactor = 2;
+}
+
+Tensor concat(const Tensor &a, const Tensor &b){
+    return xt::concatenate(xt::xtuple(a, b));
 }
 
 double QAgent::getQ(const Tensor &state, int action) {
-    return values.get(xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)action})))(0);
+    return values.get(concat(state, {(double)action}))(0);
 }
 
 void QAgent::setQ(const Tensor &state, int action, double q) {
-    values.set(xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)action})), q);
+    values.set(concat(state, {(double)action}), q);
 }
 
 double QAgent::maxQ(const Tensor &state) {
@@ -44,32 +49,28 @@ int QAgent::argmaxQ(const Tensor &state) {
 }
 
 int QAgent::policyStep(const Tensor &state) {
-    //explore
-    if(xt::random::rand<double>({1}, 0, 1)(0) < explorationRate){
-        return xt::random::randint<int>({1}, 0, actionCount)(0);
+    double max = -INFINITY;
+    int action = 0;
+    for(int i = 0; i < actionCount; i++){
+        auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)i}));
+        double q = getQ(state, i);
+        double u = upperConfidenceFactor * std::sqrt(std::log(timeStep) / (2 * visits.get(stateAction)(0)));
+        if(explore){
+            q += u;
+        }
+        if(q > max){
+            max = q;
+            action = i;
+        }
     }
 
-    //exploit
-    return argmaxQ(state);
+    auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)action}));
+    visits.set(stateAction, visits.get(stateAction) + 1);
+
+    return action;
 }
 
-void QAgent::train(int steps) {
-    if(replayBuffer.size() < steps){
-        return;
-    }
-
-    for(int i = 0; i < steps; i++){
-        int index = 0;
-        do{
-            index = xt::random::randint<int>({1}, 0, replayBuffer.size())(0);
-        }while(replayBuffer[index].terminal);
-
-        auto &state = replayBuffer[index].state;
-        auto &action = replayBuffer[index].action;
-        auto &reward = replayBuffer[index+1].reward;
-        auto &state2 = replayBuffer[index+1].state;
-
-        double delta = reward + discountFactor * maxQ(state2) - getQ(state, action);
-        setQ(state, action, getQ(state, action) + stepSize * delta);
-    }
+void QAgent::trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2) {
+    double delta = reward + discountFactor * maxQ(state2) - getQ(state, action);
+    setQ(state, action, getQ(state, action) + stepSize * delta);
 }

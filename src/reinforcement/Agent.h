@@ -23,11 +23,14 @@ public:
     std::vector<Step> replayBuffer;
     int maxReplayBufferSize;
     bool updateAccumulativeRewards;
+    bool onPolicyTrain;
+    int timeStep;
 
     Agent();
     virtual int policyStep(const Tensor &state) = 0;
     int step(const Tensor &state, double reward, bool terminal);
     virtual void train(int steps);
+    virtual void trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2);
 };
 
 

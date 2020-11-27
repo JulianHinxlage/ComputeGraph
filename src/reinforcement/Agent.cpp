@@ -8,10 +8,13 @@ Agent::Agent() {
     discountFactor = 0.9;
     maxReplayBufferSize = 10000;
     updateAccumulativeRewards = true;
+    onPolicyTrain = false;
+    timeStep = 0;
 }
 
 int Agent::step(const Tensor &state, double reward, bool terminal){
     int action = policyStep(state);
+    timeStep++;
 
     replayBuffer.push_back({
         state, action, reward, 0, terminal
@@ -33,7 +36,42 @@ int Agent::step(const Tensor &state, double reward, bool terminal){
             }
         }
     }
+
+    if(onPolicyTrain && replayBuffer.size() >= 2){
+        int index = replayBuffer.size() - 2;
+        if(!replayBuffer[index].terminal) {
+            auto &state = replayBuffer[index].state;
+            auto &action = replayBuffer[index].action;
+            auto &reward = replayBuffer[index + 1].reward;
+            auto &state2 = replayBuffer[index + 1].state;
+            auto &action2 = replayBuffer[index + 1].action;
+            trainStep(state, action, reward, state2, action2);
+        }
+    }
+
     return action;
 }
 
-void Agent::train(int steps){}
+void Agent::train(int steps) {
+    if(replayBuffer.size() < steps){
+        return;
+    }
+
+    for(int i = 0; i < steps; i++){
+        int index = 0;
+        do{
+            index = xt::random::randint<int>({1}, 0, replayBuffer.size())(0);
+        }while(replayBuffer[index].terminal);
+
+        auto &state = replayBuffer[index].state;
+        auto &action = replayBuffer[index].action;
+        auto &reward = replayBuffer[index+1].reward;
+        auto &state2 = replayBuffer[index+1].state;
+        auto &action2 = replayBuffer[index+1].action;
+
+        trainStep(state, action, reward, state2, action2);
+    }
+}
+
+void Agent::trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2) {}
+
