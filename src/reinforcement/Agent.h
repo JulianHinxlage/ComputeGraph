@@ -28,9 +28,9 @@ public:
 
     Agent();
     virtual int policyStep(const Tensor &state) = 0;
-    int step(const Tensor &state, double reward, bool terminal);
+    virtual int step(const Tensor &state, double reward, bool terminal);
     virtual void train(int steps);
-    virtual void trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2);
+    virtual void trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2);
 };
 
 

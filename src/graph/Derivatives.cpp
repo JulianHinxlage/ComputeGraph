@@ -97,6 +97,9 @@ void Derivatives::init() {
     OP("inv"){
         lhsResult = -inv(lhs * lhs) * gradient;
     };
+    OP("log"){
+        lhsResult = gradient / lhs;
+    };
     OP("sum"){
         lhsResult = gradient;
     };

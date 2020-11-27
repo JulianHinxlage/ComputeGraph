@@ -226,3 +226,7 @@ Node inv(const Node &lhs){
 Node sum(const Node &lhs) {
     return lhs("sum");
 }
+
+Node log(const Node &lhs){
+    return lhs("log");
+}

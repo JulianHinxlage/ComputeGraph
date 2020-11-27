@@ -18,7 +18,7 @@ public:
     double upperConfidenceFactor;
     QAgent(int actionCount);
     virtual int policyStep(const Tensor &state) override;
-    virtual void trainStep(const Tensor &state, int action, double reward, const Tensor &state2, int action2) override;
+    virtual void trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2) override;
 
     double getQ(const Tensor &state, int action);
     void setQ(const Tensor &state, int action, double q);
