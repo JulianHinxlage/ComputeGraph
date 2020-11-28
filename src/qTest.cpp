@@ -53,13 +53,11 @@ int main(int argc, char *argv[]) {
 
 
     PolicyGradientAgent agent;
-    agent.init(2, 4, {10});
+    agent.init(2, 4, {10, 10});
     agent.discountFactor = 0.9;
-    agent.policy.optimizer->batchSize = 1000;
+    agent.policy.optimizer->batchSize = 100;
 
-
-
-    double avg = 0;
+    MeanBuffer averageReward(100);
     for(int i = 0; i < 10000; i++){
 
         game.resetPosition();
@@ -68,11 +66,32 @@ int main(int argc, char *argv[]) {
         bool terminal = false;
         double total = 0;
 
+        if(i % 100 == 0){
+            double var = 0;
+            double mean = 0;
+            double count = 0;
+            agent.policy.forward.eachParameter([&](Tensor &p){
+               var += xt::sum(p * p)(0);
+               mean += xt::sum(p)(0);
+               count += p.size();
+            });
+            mean /= count;
+            var /= count;
+            var -= mean * mean;
+            std::cout << "parameter mean:      " << mean << std::endl;
+            std::cout << "parameter variance:  " << var << std::endl;
+
+            if(std::isnan(mean) || std::isnan(var)){
+                std::cout << "error: NaN parameter!" << std::endl;
+                return -1;
+            }
+        }
+
         while(true){
             Tensor state = {(double)game.xPosition, (double)game.yPosition};
 
             if(i % 1000 == 0){
-                std::cout << "dist: " << agent.policy.forward.run(state) << std::endl;
+                std::cout << "action distribution: " << agent.policy.forward.run(state) << std::endl;
             }
 
             int action = agent.step(state, r, terminal);
@@ -84,13 +103,13 @@ int main(int argc, char *argv[]) {
         }
 
 
-        avg = avg * 0.99 + total * 0.01;
+        averageReward.add(total);
         if(i % 100 == 0 && i != 0){
-            std::cout << "avg: " << avg << std::endl;
+            std::cout << "average reward: " << averageReward.mean() << std::endl;
         }
 
-        if(avg > goal){
-            std::cout << "avg: " << avg << std::endl;
+        if(averageReward.mean() > goal){
+            std::cout << "average reward: " << averageReward.mean() << std::endl;
             std::cout << "goal reached after " << i << " iterations" << std::endl;
             break;
         }
@@ -101,7 +120,6 @@ int main(int argc, char *argv[]) {
 
     //play
     {
-        //agent.explore = false;
         for(int i = 0; i < 3; i++){
             game.resetPosition();
             double r = 0;

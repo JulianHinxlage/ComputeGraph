@@ -30,6 +30,7 @@ public:
     virtual int policyStep(const Tensor &state) = 0;
     virtual int step(const Tensor &state, double reward, bool terminal);
     virtual void train(int steps);
+    virtual void trainAll();
     virtual void trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2);
 };
 

@@ -27,7 +27,7 @@ double MeanBuffer::mean(){
     if(values.size() == 0){
         return 0;
     }else{
-        return sum / values.size();
+        return sum / (double)values.size();
     }
 }
 

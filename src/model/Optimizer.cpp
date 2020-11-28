@@ -54,7 +54,7 @@ void MomentumGradientDescent::updateRule(Each each) {
 }
 
 
-Adam::Adam(double learningRate, double beta1, double beta2, int batchSize, double decay, double epsilon){
+Adam::Adam(double learningRate, double beta1, double beta2, int batchSize, double decay, double epsilon, double gradientClip){
     this->learningRate = learningRate;
     this->batchSize = batchSize;
     this->beta1 = beta1;
@@ -64,6 +64,7 @@ Adam::Adam(double learningRate, double beta1, double beta2, int batchSize, doubl
     beta2t = 1;
     this->decay = decay;
     this->epsilon = epsilon;
+    this->gradientClip = gradientClip;
 }
 
 void Adam::updateRule(Each each){
@@ -74,6 +75,8 @@ void Adam::updateRule(Each each){
     beta2t *= beta2;
     int i = 0;
     each([&](Tensor &parameter, Tensor &gradient){
+        gradient = xt::minimum(xt::maximum(gradient, -gradientClip), gradientClip);
+
         gradientMomentum1[i] = gradientMomentum1[i] * beta1 + gradient * (1.0 - beta1);
         gradientMomentum2[i] = gradientMomentum2[i] * beta2 + (gradient * gradient) * (1.0 - beta2);
 

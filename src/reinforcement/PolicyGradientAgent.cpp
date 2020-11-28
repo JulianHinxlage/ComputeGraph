@@ -6,8 +6,8 @@
 #include "model/ModelBuilder.h"
 
 PolicyGradientAgent::PolicyGradientAgent() {
-    baseline.maxValues = 1000;
-    variance.maxValues = 1000;
+    baseline.maxValues = 100;
+    variance.maxValues = 100;
 }
 
 void PolicyGradientAgent::init(int inputs, int actions, const std::vector<int> &layers) {
@@ -31,14 +31,13 @@ void PolicyGradientAgent::init(int inputs, int actions, const std::vector<int> &
     net.softmax();
 
     policy.compile(net.node);
-    policy.optimizer = std::make_shared<Adam>();
-    policy.optimizer->batchSize = 100;
+    policy.optimizer = std::make_shared<Adam>(Adam(0.001, 0.9, 0.999, 100, 0.1, 1e-8, 0.1));
 
     Node rewards = Node::input({actions});
     Node probabilities = Node::input({actions});
     Node actionLoss = sum(rewards * log(probabilities + 0.01));
     Node entropyLoss = -sum(probabilities * log(probabilities + 0.01));
-    loss.compile(actionLoss + entropyLoss * 0.01);
+    loss.compile(-(actionLoss + entropyLoss * 0.01));
 }
 
 int PolicyGradientAgent::sampleDistribution(const Tensor &probabilities) {
@@ -70,8 +69,8 @@ void PolicyGradientAgent::trainStep(const Tensor &state, int action, double rewa
     double b = baseline.mean();
     double v = variance.mean() - b * b;
 
-    values(action) = (accumulativeReward - b) / std::sqrt(v + 0.0001);
+    values(action) = (accumulativeReward - b) / std::sqrt(v * 0.99 + 0.01);
     loss.forward.runMultiple({values, actionProbabilities})[0](0);
-    policy.backward.run(loss.backward.runMultiple({-0.01})[1]);
+    policy.backward.run(loss.backward.runMultiple({1.0})[1]);
     policy.updateOptimizer(1);
 }

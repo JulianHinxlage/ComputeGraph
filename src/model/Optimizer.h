@@ -41,8 +41,9 @@ public:
     double beta2t;
     double decay;
     double epsilon;
+    double gradientClip;
 
-    Adam(double learningRate = 0.001, double beta1 = 0.9, double beta2 = 0.999, int batchSize = 1, double decay = 0, double epsilon = 1e-8);
+    Adam(double learningRate = 0.001, double beta1 = 0.9, double beta2 = 0.999, int batchSize = 1, double decay = 0, double epsilon = 1e-8, double gradientClip = std::numeric_limits<double>::max());
     virtual void updateRule(Each each) override;
 };
 

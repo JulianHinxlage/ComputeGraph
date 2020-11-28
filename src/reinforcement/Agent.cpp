@@ -53,6 +53,22 @@ int Agent::step(const Tensor &state, double reward, bool terminal){
     return action;
 }
 
+void Agent::trainAll() {
+    for(int i = 0; i < replayBuffer.size() - 1; i++){
+        if(replayBuffer[i].terminal){
+            continue;
+        }
+        auto &state = replayBuffer[i].state;
+        auto &action = replayBuffer[i].action;
+        auto &reward = replayBuffer[i+1].reward;
+        auto &accumulativeReward = replayBuffer[i+1].accumulativeReward;
+        auto &state2 = replayBuffer[i+1].state;
+        auto &action2 = replayBuffer[i+1].action;
+
+        trainStep(state, action, reward, accumulativeReward, state2, action2);
+    }
+}
+
 void Agent::train(int steps) {
     if(replayBuffer.size() < steps){
         return;
