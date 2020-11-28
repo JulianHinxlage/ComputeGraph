@@ -2,22 +2,19 @@
 // Copyright (c) 2020 Julian Hinxlage. All rights reserved.
 //
 
-#ifndef COMPUTEGRAPH_POLICYGRADIENTAGENT_H
-#define COMPUTEGRAPH_POLICYGRADIENTAGENT_H
+#ifndef COMPUTEGRAPH_ACTORCRITICAGENT_H
+#define COMPUTEGRAPH_ACTORCRITICAGENT_H
 
 #include "Agent.h"
 #include "model/Model.h"
-#include "MeanBuffer.h"
 
-class PolicyGradientAgent : public Agent {
+class ActorCriticAgent : public Agent{
 public:
-    Model policy;
+    Model actorCritic;
     Model loss;
-    MeanBuffer baseline;
-    MeanBuffer variance;
 
-    PolicyGradientAgent();
-    void init(int inputs, int actions, const std::vector<int> &layers);
+    ActorCriticAgent();
+    void init(int inputs, int actions, const std::vector<int> &layers = {10}, const std::vector<int> &actorLayers = {10}, const std::vector<int> &criticLayers = {10}, double entropyFactor = 0.01);
 
     int sampleDistribution(const Tensor &probabilities);
     virtual int policyStep(const Tensor &state) override;
@@ -25,4 +22,4 @@ public:
 };
 
 
-#endif //COMPUTEGRAPH_POLICYGRADIENTAGENT_H
+#endif //COMPUTEGRAPH_ACTORCRITICAGENT_H

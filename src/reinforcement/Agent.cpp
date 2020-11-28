@@ -46,7 +46,8 @@ int Agent::step(const Tensor &state, double reward, bool terminal){
             auto &accumulativeReward = replayBuffer[index+1].accumulativeReward;
             auto &state2 = replayBuffer[index + 1].state;
             auto &action2 = replayBuffer[index + 1].action;
-            trainStep(state, action, reward, accumulativeReward, state2, action2);
+            auto &isNextTerminal = replayBuffer[index + 1].terminal;
+            trainStep(state, action, reward, accumulativeReward, state2, action2, isNextTerminal);
         }
     }
 
@@ -64,8 +65,9 @@ void Agent::trainAll() {
         auto &accumulativeReward = replayBuffer[i+1].accumulativeReward;
         auto &state2 = replayBuffer[i+1].state;
         auto &action2 = replayBuffer[i+1].action;
+        auto &isNextTerminal = replayBuffer[i+1].terminal;
 
-        trainStep(state, action, reward, accumulativeReward, state2, action2);
+        trainStep(state, action, reward, accumulativeReward, state2, action2, isNextTerminal);
     }
 }
 
@@ -86,10 +88,11 @@ void Agent::train(int steps) {
         auto &accumulativeReward = replayBuffer[index+1].accumulativeReward;
         auto &state2 = replayBuffer[index+1].state;
         auto &action2 = replayBuffer[index+1].action;
+        auto &isNextTerminal = replayBuffer[index+1].terminal;
 
-        trainStep(state, action, reward, accumulativeReward, state2, action2);
+        trainStep(state, action, reward, accumulativeReward, state2, action2, isNextTerminal);
     }
 }
 
-void Agent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2) {}
+void Agent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2, bool isNextTerminal) {}
 

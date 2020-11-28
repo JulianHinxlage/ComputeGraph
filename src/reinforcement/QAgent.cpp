@@ -70,7 +70,7 @@ int QAgent::policyStep(const Tensor &state) {
     return action;
 }
 
-void QAgent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2) {
+void QAgent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2, bool isNextTerminal) {
     double delta = reward + discountFactor * maxQ(state2) - getQ(state, action);
     setQ(state, action, getQ(state, action) + stepSize * delta);
 }

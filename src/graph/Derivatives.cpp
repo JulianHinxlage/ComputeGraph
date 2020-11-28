@@ -100,6 +100,9 @@ void Derivatives::init() {
     OP("log"){
         lhsResult = gradient / lhs;
     };
+    OP("log2"){
+        lhsResult = gradient / (lhs * std::log(2));
+    };
     OP("sum"){
         lhsResult = gradient;
     };

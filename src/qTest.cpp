@@ -5,6 +5,7 @@
 #include "graph/Derivatives.h"
 #include "reinforcement/QAgent.h"
 #include "reinforcement/PolicyGradientAgent.h"
+#include "reinforcement/ActorCriticAgent.h"
 #include "Game.h"
 
 void gameStep(Game &game, int action, double &reward, bool &terminal, int &timeStep){
@@ -27,9 +28,6 @@ void gameStep(Game &game, int action, double &reward, bool &terminal, int &timeS
 }
 
 int main(int argc, char *argv[]) {
-    //init
-    Operations::init();
-    Derivatives::init();
     int seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     xt::random::seed(seed);
 
@@ -40,7 +38,7 @@ int main(int argc, char *argv[]) {
     game.field = {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {-1,  0,  0, -1,  0,  0,  0,  0,  0, -1},
-            {-1,  0,  0, -1,  0,  0,  0,  2,  0, -1},
+            {-1,  0,  0,  0,  0,  0,  0,  2,  0, -1},
             {-1,  0,  0,  0,  0,  0,  0,  0,  0, -1},
             {-1, -1,  0,  1,  0,  0,  0,  0,  0, -1},
             {-1, -1,  0,  0,  0,  0,  0,  0,  0, -1},
@@ -52,13 +50,13 @@ int main(int argc, char *argv[]) {
     double goal = 9.0;
 
 
-    PolicyGradientAgent agent;
-    agent.init(2, 4, {10, 10});
-    agent.discountFactor = 0.9;
-    agent.policy.optimizer->batchSize = 100;
+    ActorCriticAgent agent;
+    agent.init(2, 4, {10}, {10, 10}, {10}, 0.05);
+    agent.discountFactor = 0.99;
+    agent.actorCritic.optimizer->batchSize = 100;
 
     MeanBuffer averageReward(100);
-    for(int i = 0; i < 10000; i++){
+    for(int i = 0; i < 100000; i++){
 
         game.resetPosition();
         double r = 0;
@@ -66,32 +64,13 @@ int main(int argc, char *argv[]) {
         bool terminal = false;
         double total = 0;
 
-        if(i % 100 == 0){
-            double var = 0;
-            double mean = 0;
-            double count = 0;
-            agent.policy.forward.eachParameter([&](Tensor &p){
-               var += xt::sum(p * p)(0);
-               mean += xt::sum(p)(0);
-               count += p.size();
-            });
-            mean /= count;
-            var /= count;
-            var -= mean * mean;
-            std::cout << "parameter mean:      " << mean << std::endl;
-            std::cout << "parameter variance:  " << var << std::endl;
-
-            if(std::isnan(mean) || std::isnan(var)){
-                std::cout << "error: NaN parameter!" << std::endl;
-                return -1;
-            }
-        }
-
         while(true){
             Tensor state = {(double)game.xPosition, (double)game.yPosition};
 
-            if(i % 1000 == 0){
-                std::cout << "action distribution: " << agent.policy.forward.run(state) << std::endl;
+            if(i % 10000 == 0){
+                auto &output = agent.actorCritic.forward.runMultiple({state});
+                std::cout << "action distribution: " << output[0] << std::endl;
+                std::cout << "critic values:       " << output[1] << std::endl;
             }
 
             int action = agent.step(state, r, terminal);
@@ -104,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 
         averageReward.add(total);
-        if(i % 100 == 0 && i != 0){
+        if(i % 1000 == 0 && i != 0){
             std::cout << "average reward: " << averageReward.mean() << std::endl;
         }
 
@@ -114,7 +93,8 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        agent.train(100);
+        agent.trainAll();
+        agent.replayBuffer.clear();
     }
 
 
@@ -131,7 +111,11 @@ int main(int argc, char *argv[]) {
                 game.print(4);
 
                 Tensor state = {(double)game.xPosition, (double)game.yPosition};
-                std::cout << "dist: " << agent.policy.forward.run(state) << std::endl;
+                {
+                    auto &output = agent.actorCritic.forward.runMultiple({state});
+                    std::cout << "action distribution: " << output[0] << std::endl;
+                    std::cout << "critic values:       " << output[1] << std::endl;
+                }
                 int action = agent.step(state, r, terminal);
                 if(terminal){
                     std::cout << "reward: " << total << std::endl;

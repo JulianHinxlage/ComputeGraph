@@ -126,6 +126,9 @@ void Operations::init() {
     OP("log"){
         result = xt::log(lhs);
     };
+    OP("log2"){
+        result = xt::log2(lhs);
+    };
     OP("sum"){
         result = xt::sum(lhs);
     };

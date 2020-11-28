@@ -82,5 +82,6 @@ Node exp(const Node &lhs);
 Node inv(const Node &lhs);
 Node sum(const Node &lhs);
 Node log(const Node &lhs);
+Node log2(const Node &lhs);
 
 #endif //COMPUTEGRAPH_NODE_H

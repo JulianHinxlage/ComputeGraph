@@ -36,7 +36,7 @@ void PolicyGradientAgent::init(int inputs, int actions, const std::vector<int> &
     Node rewards = Node::input({actions});
     Node probabilities = Node::input({actions});
     Node actionLoss = sum(rewards * log(probabilities + 0.01));
-    Node entropyLoss = -sum(probabilities * log(probabilities + 0.01));
+    Node entropyLoss = -sum(probabilities * log2(probabilities + 0.01));
     loss.compile(-(actionLoss + entropyLoss * 0.01));
 }
 
@@ -60,7 +60,7 @@ int PolicyGradientAgent::policyStep(const Tensor &state) {
     return action;
 }
 
-void PolicyGradientAgent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2) {
+void PolicyGradientAgent::trainStep(const Tensor &state, int action, double reward, double accumulativeReward, const Tensor &state2, int action2, bool isNextTerminal) {
     const Tensor &actionProbabilities = policy.forward.run(state);
     Tensor values = xt::zeros_like(actionProbabilities);
 

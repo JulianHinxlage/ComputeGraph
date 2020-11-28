@@ -230,3 +230,7 @@ Node sum(const Node &lhs) {
 Node log(const Node &lhs){
     return lhs("log");
 }
+
+Node log2(const Node &lhs){
+    return lhs("log2");
+}
