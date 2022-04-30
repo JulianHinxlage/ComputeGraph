@@ -10,3 +10,6 @@
 [submodule "extern/xtensor-blas"]
 	path = extern/xtensor-blas
 	url = https://github.com/xtensor-stack/xtensor-blas
+[submodule "extern/OpenBLAS"]
+	path = extern/OpenBLAS
+	url = https://github.com/xianyi/OpenBLAS.git

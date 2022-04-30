@@ -46,7 +46,8 @@ Node Node::constant(const Shape &shape, const std::vector<double> &values) {
 }
 
 Node Node::constant(const Shape &shape, double value) {
-    return constant(shape, (std::vector<double>){value});
+    std::vector<double> values = { value };
+    return constant(shape, values);
 }
 
 Node Node::constant(double value) {

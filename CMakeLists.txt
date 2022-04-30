@@ -12,9 +12,9 @@ file(GLOB_RECURSE SOURCE
 add_library(${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC src)
 
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC blas lapack)
+
+add_subdirectory(extern/OpenBLAS)
+target_link_libraries(${PROJECT_NAME} PUBLIC openblas)
 
 target_include_directories(${PROJECT_NAME} PUBLIC extern/xsimd/include)
 target_include_directories(${PROJECT_NAME} PUBLIC extern/xtl/include)

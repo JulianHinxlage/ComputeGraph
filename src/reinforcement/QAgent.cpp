@@ -52,7 +52,7 @@ int QAgent::policyStep(const Tensor &state) {
     double max = -INFINITY;
     int action = 0;
     for(int i = 0; i < actionCount; i++){
-        auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)i}));
+        auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), Tensor((double)i)));
         double q = getQ(state, i);
         double u = upperConfidenceFactor * std::sqrt(std::log(timeStep) / (2 * visits.get(stateAction)(0)));
         if(explore){
@@ -64,7 +64,7 @@ int QAgent::policyStep(const Tensor &state) {
         }
     }
 
-    auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), (Tensor){(double)action}));
+    auto stateAction = xt::concatenate(xt::xtuple(xt::flatten(state), Tensor((double)action)));
     visits.set(stateAction, visits.get(stateAction) + 1);
 
     return action;

@@ -8,6 +8,10 @@
 #include "graph/Tensor.h"
 
 #include <stdio.h>
+
+#if WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
 
@@ -22,6 +26,7 @@ char getch(){
     tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
     return (char)c;
 }
+#endif
 
 class Game{
 public:
